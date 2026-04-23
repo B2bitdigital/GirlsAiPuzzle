@@ -1,3 +1,7 @@
 -keep class com.badlogic.gdx.** { *; }
 -keep class game.** { *; }
 -dontwarn com.badlogic.gdx.**
+-keepclassmembers class game.level.** { *; }
+-keep class com.google.gson.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*

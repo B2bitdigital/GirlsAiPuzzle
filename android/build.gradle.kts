@@ -30,7 +30,7 @@ android {
             buildConfigField("String", "ADMOB_INTERSTITIAL_ID",
                 "\"YOUR_REAL_INTERSTITIAL_ID_HERE\"")
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
