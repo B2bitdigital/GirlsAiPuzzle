@@ -1,0 +1,3 @@
+-keep class com.badlogic.gdx.** { *; }
+-keep class game.** { *; }
+-dontwarn com.badlogic.gdx.**
