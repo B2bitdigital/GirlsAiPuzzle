@@ -29,7 +29,9 @@ class AndroidLauncher : AndroidApplication() {
             useGyroscope = false
         }
 
-        val layout = initializeForView(gameInstance, config) as FrameLayout
+        val gameView = initializeForView(gameInstance, config)
+        val layout = FrameLayout(this)
+        layout.addView(gameView)
         adManager.createBannerAndAttach(layout)
         setContentView(layout)
     }
