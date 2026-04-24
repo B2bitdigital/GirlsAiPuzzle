@@ -34,6 +34,13 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions { jvmTarget = "17" }
+
     buildFeatures { buildConfig = true }
 
     sourceSets {
@@ -45,6 +52,7 @@ android {
 
 dependencies {
     implementation(project(":core"))
+    implementation("com.badlogicgames.gdx:gdx:$gdxVersion")
     implementation("com.badlogicgames.gdx:gdx-backend-android:$gdxVersion")
     implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a")
     implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a")

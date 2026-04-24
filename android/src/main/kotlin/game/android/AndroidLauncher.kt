@@ -7,7 +7,7 @@ import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 import game.GirlsPanicGame
 import game.android.ads.AdManager
 import game.android.persistence.AndroidGamePrefs
-import game.BuildConfig
+import game.girlsaipanic.BuildConfig
 
 class AndroidLauncher : AndroidApplication() {
 
