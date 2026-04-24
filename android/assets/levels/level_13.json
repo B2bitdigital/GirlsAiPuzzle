@@ -1,0 +1,23 @@
+{
+  "id": 13,
+  "background": "backgrounds/bg_13.png",
+  "timeSeconds": 75,
+  "targetPercent": 75,
+  "enemies": [
+    {
+      "type": "spider",
+      "count": 2,
+      "speed": 80.0
+    },
+    {
+      "type": "cockroach",
+      "count": 1,
+      "speed": 99.0
+    }
+  ],
+  "powerups": [
+    "time",
+    "freeze",
+    "shield"
+  ]
+}

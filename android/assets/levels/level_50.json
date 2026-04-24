@@ -1,0 +1,34 @@
+{
+  "id": 50,
+  "background": "backgrounds/bg_50.png",
+  "timeSeconds": 40,
+  "targetPercent": 85,
+  "enemies": [
+    {
+      "type": "spider",
+      "count": 3,
+      "speed": 110.0
+    },
+    {
+      "type": "cockroach",
+      "count": 2,
+      "speed": 120.0
+    },
+    {
+      "type": "wasp",
+      "count": 2,
+      "speed": 130.0
+    },
+    {
+      "type": "snail",
+      "count": 2,
+      "speed": 40.0
+    }
+  ],
+  "powerups": [
+    "time",
+    "freeze",
+    "speed",
+    "shield"
+  ]
+}

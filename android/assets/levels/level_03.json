@@ -1,0 +1,17 @@
+{
+  "id": 3,
+  "background": "backgrounds/bg_03.png",
+  "timeSeconds": 90,
+  "targetPercent": 75,
+  "enemies": [
+    {
+      "type": "spider",
+      "count": 1,
+      "speed": 76.0
+    }
+  ],
+  "powerups": [
+    "time",
+    "freeze"
+  ]
+}
