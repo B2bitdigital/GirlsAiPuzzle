@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import game.GameConstants
 import game.GirlsPanicGame
 import game.ecs.EcsWorld
+import game.ecs.EnemyType
 import game.ecs.Entity
 import game.ecs.WorldEvent
 import game.ecs.systems.GridPoint
@@ -142,10 +143,10 @@ class GameScreen(
             val e = eState.entity as Entity.Enemy
             val pos = eState.position
             shapes.color = when (e.type) {
-                game.ecs.EnemyType.SPIDER    -> Color.RED
-                game.ecs.EnemyType.COCKROACH -> Color.BROWN
-                game.ecs.EnemyType.WASP      -> Color.YELLOW
-                game.ecs.EnemyType.SNAIL     -> Color.GREEN
+                EnemyType.SPIDER    -> Color.RED
+                EnemyType.COCKROACH -> Color.BROWN
+                EnemyType.WASP      -> Color.YELLOW
+                EnemyType.SNAIL     -> Color.GREEN
             }
             shapes.circle(pos.x, pos.y, 8f)
         }
