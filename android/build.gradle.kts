@@ -7,12 +7,12 @@ val gdxVersion = "1.12.1"
 
 android {
     namespace = "game.girlsaipanic"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "game.girlsaipanic"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }
