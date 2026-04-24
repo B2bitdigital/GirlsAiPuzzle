@@ -5,6 +5,10 @@ plugins {
 
 val gdxVersion = "1.12.1"
 
+configurations {
+    create("natives")
+}
+
 android {
     namespace = "game.girlsaipanic"
     compileSdk = 36
@@ -46,7 +50,40 @@ android {
     sourceSets {
         getByName("main") {
             assets.srcDirs("assets")
+            jniLibs.srcDirs("libs")
         }
+    }
+}
+
+val natives by configurations
+
+tasks.register("copyAndroidNatives") {
+    doFirst {
+        listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64").forEach {
+            file("libs/$it").mkdirs()
+        }
+        natives.files.forEach { jar ->
+            val outputDir = when {
+                jar.name.endsWith("natives-armeabi-v7a.jar") -> file("libs/armeabi-v7a")
+                jar.name.endsWith("natives-arm64-v8a.jar") -> file("libs/arm64-v8a")
+                jar.name.endsWith("natives-x86.jar") -> file("libs/x86")
+                jar.name.endsWith("natives-x86_64.jar") -> file("libs/x86_64")
+                else -> null
+            }
+            outputDir?.let {
+                copy {
+                    from(zipTree(jar))
+                    into(it)
+                    include("*.so")
+                }
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded {
+    if (name.contains("package") || name.contains("assemble") || name.contains("Bundle")) {
+        dependsOn("copyAndroidNatives")
     }
 }
 
@@ -54,9 +91,9 @@ dependencies {
     implementation(project(":core"))
     implementation("com.badlogicgames.gdx:gdx:$gdxVersion")
     implementation("com.badlogicgames.gdx:gdx-backend-android:$gdxVersion")
-    implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a")
-    implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a")
-    implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86")
-    implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64")
+    natives("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a")
+    natives("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a")
+    natives("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86")
+    natives("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64")
     implementation("com.google.android.gms:play-services-ads:23.0.0")
 }
