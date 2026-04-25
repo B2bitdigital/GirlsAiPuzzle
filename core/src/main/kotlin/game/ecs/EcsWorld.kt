@@ -42,21 +42,21 @@ class EcsWorld(
         )
 
         // Spawn enemies from level config
-        var idCounter = 1
+        var initIdCounter = 1
         for (enemyCfg in levelData.enemies) {
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
-                val startX = (idCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
-                val startY = (GameConstants.PLAY_HEIGHT * 0.5f + idCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
+                val startX = (initIdCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
+                val startY = (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
                 enemies.add(EntityState(
-                    entity = Entity.Enemy(idCounter, type, enemyCfg.speed),
+                    entity = Entity.Enemy(initIdCounter, type, enemyCfg.speed),
                     position = PositionComponent(startX, startY),
                     velocity = VelocityComponent(),
                     enemyComp = EnemyComponent(speed = enemyCfg.speed,
-                        dirX = if (idCounter % 2 == 0) 1f else -1f,
+                        dirX = if (initIdCounter % 2 == 0) 1f else -1f,
                         dirY = if (type == EnemyType.COCKROACH) 0.5f else 0f)
                 ))
-                idCounter++
+                initIdCounter++
             }
         }
     }
