@@ -92,7 +92,7 @@ class GameScreen(
         drawHUD()
 
         when (event) {
-            WorldEvent.GameOver -> game.setScreen(GameOverScreen(game, levelId))
+            WorldEvent.GameOver -> game.setScreen(GameOverScreen(game, levelId, world.score))
             WorldEvent.LevelComplete -> {
                 val stars = world.computeStars()
                 game.prefs.saveStars(levelId, stars)
@@ -269,53 +269,84 @@ class GameScreen(
         val timeStr = "%02d:%02d".format(world.timeRemaining.toInt() / 60, world.timeRemaining.toInt() % 60)
         val W = GameConstants.FIELD_WIDTH
         val H = GameConstants.FIELD_HEIGHT
+        val hudH = 60f
 
-        // HUD bar background
         Gdx.gl.glEnable(GL20.GL_BLEND)
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        // HUD background — solid black
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.setColor(0f, 0f, 0f, 0.6f)
-        shapes.rect(0f, H - 40f, W, 40f)
+        shapes.setColor(0f, 0f, 0f, 0.88f)
+        shapes.rect(0f, H - hudH, W, hudH)
         shapes.end()
-        Gdx.gl.glDisable(GL20.GL_BLEND)
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.setColor(0.22f, 0.22f, 0.22f, 1f)
+        shapes.line(0f, H - hudH, W, H - hudH)
+        shapes.end()
 
         batch.begin()
-        font.data.setScale(1.8f)
 
-        // Lives (hearts)
-        font.color = Color(1f, 0.3f, 0.4f, 1f)
-        font.draw(batch, "♥ ".repeat(world.lives), 8f, H - 10f)
+        // TIME label + value (left)
+        font.data.setScale(0.9f)
+        font.color = Color(0.792f, 0.784f, 0.667f, 1f)
+        font.draw(batch, "TIME", 12f, H - 10f)
 
-        // Score
-        font.color = Color(1f, 1f, 0.3f, 1f)
-        layout.setText(font, "SCORE: ${world.score}")
-        font.draw(batch, "SCORE: ${world.score}", (W - layout.width) / 2f, H - 10f)
+        font.data.setScale(1.9f)
+        val timeDanger = world.timeRemaining < 30f
+        font.color = if (timeDanger) Color(0.792f, 0f, 0.176f, 1f)
+                     else Color(0f, 0.859f, 0.914f, 1f)
+        font.draw(batch, timeStr, 12f, H - 26f)
 
-        // Timer
-        val timeColor = if (world.timeRemaining < 30f) Color(1f, 0.3f, 0.3f, 1f) else Color.WHITE
-        font.color = timeColor
-        layout.setText(font, timeStr)
-        font.draw(batch, timeStr, W - layout.width - 8f, H - 10f)
+        // CLEAR label + value (right)
+        font.data.setScale(0.9f)
+        font.color = Color(0.792f, 0.784f, 0.667f, 1f)
+        val pctStr = "$pct%"
+        layout.setText(font, "CLEAR")
+        font.draw(batch, "CLEAR", W - layout.width - 12f, H - 10f)
 
-        // Progress bar
+        font.data.setScale(1.9f)
+        font.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(font, pctStr)
+        font.draw(batch, pctStr, W - layout.width - 12f, H - 26f)
+
+        // Lives (center, small)
         font.data.setScale(1.5f)
-        font.color = Color.CYAN
-        font.draw(batch, "$pct%", 8f, H - 24f)
+        font.color = Color(0.792f, 0f, 0.176f, 1f)
+        val livesStr = "♥ ".repeat(world.lives.coerceIn(0, 5)).trimEnd()
+        layout.setText(font, livesStr)
+        font.draw(batch, livesStr, (W - layout.width) / 2f, H - 12f)
 
-        // Progress bar fill
+        // Score (center bottom row)
+        font.data.setScale(1.3f)
+        font.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        val scoreStr = "${world.score}"
+        layout.setText(font, scoreStr)
+        font.draw(batch, scoreStr, (W - layout.width) / 2f, H - 38f)
+
         font.data.setScale(1f)
         batch.end()
 
-        // Progress bar graphic
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        // Segmented territory bar (16 blocks)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        val barX = 50f; val barY = H - 38f; val barW = W - 60f; val barH = 6f
-        shapes.setColor(0.2f, 0.2f, 0.2f, 0.8f)
-        shapes.rect(barX, barY, barW, barH)
-        shapes.setColor(0f, 0.9f, 0.9f, 1f)
-        shapes.rect(barX, barY, barW * pct / 100f, barH)
+        val segments = 16
+        val barMargin = 12f
+        val barY = H - hudH + 6f
+        val barH = 8f
+        val totalBarW = W - barMargin * 2f
+        val segW = (totalBarW - (segments - 1) * 2f) / segments
+        val filledSegs = (pct * segments / 100f).toInt()
+        for (s in 0 until segments) {
+            val sx = barMargin + s * (segW + 2f)
+            val lit = s < filledSegs
+            shapes.setColor(
+                if (lit) 0.918f else 0.165f,
+                if (lit) 0.918f else 0.165f,
+                0f, 1f
+            )
+            shapes.rect(sx, barY, segW, barH)
+        }
         shapes.end()
+
         Gdx.gl.glDisable(GL20.GL_BLEND)
     }
 
