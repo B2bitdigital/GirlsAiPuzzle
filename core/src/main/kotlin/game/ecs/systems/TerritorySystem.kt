@@ -16,8 +16,10 @@ class TerritorySystem(
     val cols: Int = game.GameConstants.GRID_COLS,
     val rows: Int = game.GameConstants.GRID_ROWS
 ) {
-    // true = conquered/border, false = free
+    // grid[c][r] = true se cella conquistata (NON include più il bordo iniziale)
     val grid: Array<BooleanArray> = Array(cols) { BooleanArray(rows) }
+    // isPerimeter[c][r] = true se cella è bordo/perimetro (safe zone, non conta come conquistata)
+    val isPerimeter: Array<BooleanArray> = Array(cols) { BooleanArray(rows) }
 
     private val _currentLine = mutableListOf<GridPoint>()
     val currentLine: List<GridPoint> get() = _currentLine
@@ -28,26 +30,39 @@ class TerritorySystem(
     init { initBorders() }
 
     private fun initBorders() {
-        for (c in 0 until cols) { grid[c][0] = true; grid[c][rows - 1] = true }
-        for (r in 0 until rows) { grid[0][r] = true; grid[cols - 1][r] = true }
+        // Imposta il bordo come perimetro (safe zone), NON come conquistato
+        for (c in 0 until cols) {
+            isPerimeter[c][0] = true
+            isPerimeter[c][rows - 1] = true
+        }
+        for (r in 0 until rows) {
+            isPerimeter[0][r] = true
+            isPerimeter[cols - 1][r] = true
+        }
+        // grid resta tutto false (nessuna cella conquistata all'inizio)
     }
 
     fun conqueredPercent(): Float {
-        val total = cols * rows
-        val conquered = grid.sumOf { col -> col.count { it } }
-        return conquered.toFloat() / total * 100f
+        var count = 0
+        var total = 0
+        for (c in 0 until cols) {
+            for (r in 0 until rows) {
+                if (!isPerimeter[c][r]) {
+                    total++
+                    if (grid[c][r]) count++
+                }
+            }
+        }
+        return if (total == 0) 0f else 100f * count / total
     }
 
-    fun isOnSafeZone(pt: GridPoint): Boolean =
-        pt.col in 0 until cols && pt.row in 0 until rows && grid[pt.col][pt.row]
+    fun isOnSafeZone(pt: GridPoint): Boolean {
+        // Safe zone = bordo (perimetro) OPPURE cella conquistata
+        return pt.col in 0 until cols && pt.row in 0 until rows && (isPerimeter[pt.col][pt.row] || grid[pt.col][pt.row])
+    }
 
     fun isOnPerimeter(pt: GridPoint): Boolean {
-        if (!isOnSafeZone(pt)) return false
-        val dirs = listOf(0 to 1, 0 to -1, 1 to 0, -1 to 0)
-        return dirs.any { (dc, dr) ->
-            val nc = pt.col + dc; val nr = pt.row + dr
-            nc !in 0 until cols || nr !in 0 until rows || !grid[nc][nr]
-        }
+        return pt.col in 0 until cols && pt.row in 0 until rows && isPerimeter[pt.col][pt.row]
     }
 
     fun startLine(startPt: GridPoint) {
@@ -88,7 +103,7 @@ class TerritorySystem(
         // Find all disjoint free regions created by the closed line
         val regions = findAllFreeRegions()
 
-        if (regions.isEmpty()) {
+        if (regions.size < 2) {
             _currentLine.clear()
             isDrawing = false
             return CloseResult.Success(conqueredCells = lineCells)
@@ -128,7 +143,8 @@ class TerritorySystem(
         for (c in 0 until cols) {
             for (r in 0 until rows) {
                 val pt = GridPoint(c, r)
-                if (!grid[c][r] && pt !in visited) {
+                // Skip perimeter and conquered cells
+                if (!grid[c][r] && !isPerimeter[c][r] && pt !in visited) {
                     val region = mutableSetOf<GridPoint>()
                     floodFillFrom(pt, region)
                     visited.addAll(region)
@@ -147,6 +163,7 @@ class TerritorySystem(
         if (start in visited) return
         if (start.col !in 0 until cols || start.row !in 0 until rows) return
         if (grid[start.col][start.row]) return  // conquered — can't enter
+        if (isPerimeter[start.col][start.row]) return  // perimeter — never conquerable
 
         val queue = ArrayDeque<GridPoint>()
         queue.add(start)
@@ -160,7 +177,7 @@ class TerritorySystem(
                 val nr = curr.row + dr
                 if (nc !in 0 until cols || nr !in 0 until rows) continue
                 val next = GridPoint(nc, nr)
-                if (next in visited || grid[nc][nr]) continue
+                if (next in visited || grid[nc][nr] || isPerimeter[nc][nr]) continue
                 visited.add(next)
                 queue.add(next)
             }
