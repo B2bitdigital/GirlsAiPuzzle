@@ -38,8 +38,9 @@ class GameScreen(
     private val layout = GlyphLayout()
 
     private var bgTexture: Texture? = null
+    private var enemyTexture: Texture? = null
 
-    // Enemy colors
+    // Enemy tint colors
     private val colorSpider    = Color(1f, 0.15f, 0.15f, 1f)
     private val colorCockroach = Color(0.7f, 0.45f, 0.1f, 1f)
     private val colorWasp      = Color(1f, 0.9f, 0f, 1f)
@@ -67,6 +68,11 @@ class GameScreen(
             bgTexture = Texture(Gdx.files.internal(levelData.background))
         } catch (e: Exception) {
             Gdx.app.log("GameScreen", "Background not found: ${levelData.background}")
+        }
+        try {
+            enemyTexture = Texture(Gdx.files.internal("nemico.png"))
+        } catch (e: Exception) {
+            Gdx.app.log("GameScreen", "Enemy texture not found")
         }
 
         Gdx.input.inputProcessor = object : InputAdapter() {
@@ -242,43 +248,49 @@ class GameScreen(
     }
 
     private fun drawEnemies() {
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        for (eState in world.enemies) {
-            val e = eState.entity as Entity.Enemy
-            val pos = eState.position
-            val col = when (e.type) {
-                EnemyType.SPIDER    -> colorSpider
-                EnemyType.COCKROACH -> colorCockroach
-                EnemyType.WASP      -> colorWasp
-                EnemyType.SNAIL     -> colorSnail
+        val tex = enemyTexture
+        val offsetX = 0f
+        val offsetY = 0f
+        if (tex != null) {
+            batch.begin()
+            for (eState in world.enemies) {
+                val e = eState.entity as Entity.Enemy
+                val pos = eState.position
+                val col = when (e.type) {
+                    EnemyType.SPIDER    -> colorSpider
+                    EnemyType.COCKROACH -> colorCockroach
+                    EnemyType.WASP      -> colorWasp
+                    EnemyType.SNAIL     -> colorSnail
+                }
+                val size = if (e.type == EnemyType.SNAIL) 24f else 32f
+                batch.setColor(col.r, col.g, col.b, 1f)
+                batch.draw(tex,
+                    offsetX + pos.x - size / 2f,
+                    offsetY + pos.y - size / 2f,
+                    size, size)
             }
-            // Glow
-            shapes.setColor(col.r, col.g, col.b, 0.1f)
-            shapes.circle(pos.x, pos.y, 22f, 16)
-            shapes.setColor(col.r, col.g, col.b, 0.25f)
-            shapes.circle(pos.x, pos.y, 14f, 16)
-            // Core
-            shapes.setColor(col)
-            val radius = if (e.type == EnemyType.SNAIL) 6f else 9f
-            shapes.circle(pos.x, pos.y, radius, 16)
-        }
-        shapes.end()
-
-        // Spider legs (Line mode)
-        shapes.begin(ShapeRenderer.ShapeType.Line)
-        for (eState in world.enemies) {
-            val e = eState.entity as Entity.Enemy
-            if (e.type != EnemyType.SPIDER) continue
-            val pos = eState.position
-            shapes.setColor(colorSpider)
-            for (i in 0 until 4) {
-                val angle = (i * 45f + 22.5f) * Math.PI.toFloat() / 180f
-                shapes.line(pos.x, pos.y,
-                    pos.x + Math.cos(angle.toDouble()).toFloat() * 14f,
-                    pos.y + Math.sin(angle.toDouble()).toFloat() * 14f)
+            batch.setColor(1f, 1f, 1f, 1f)
+            batch.end()
+        } else {
+            // Fallback: glowing circles
+            shapes.begin(ShapeRenderer.ShapeType.Filled)
+            for (eState in world.enemies) {
+                val e = eState.entity as Entity.Enemy
+                val pos = eState.position
+                val col = when (e.type) {
+                    EnemyType.SPIDER    -> colorSpider
+                    EnemyType.COCKROACH -> colorCockroach
+                    EnemyType.WASP      -> colorWasp
+                    EnemyType.SNAIL     -> colorSnail
+                }
+                shapes.setColor(col.r, col.g, col.b, 0.25f)
+                shapes.circle(offsetX + pos.x, offsetY + pos.y, 14f, 16)
+                shapes.setColor(col)
+                val radius = if (e.type == EnemyType.SNAIL) 6f else 9f
+                shapes.circle(offsetX + pos.x, offsetY + pos.y, radius, 16)
             }
+            shapes.end()
         }
-        shapes.end()
     }
 
     private fun drawPlayer() {
@@ -515,5 +527,6 @@ class GameScreen(
         shapes.dispose()
         font.dispose()
         bgTexture?.dispose()
+        enemyTexture?.dispose()
     }
 }
