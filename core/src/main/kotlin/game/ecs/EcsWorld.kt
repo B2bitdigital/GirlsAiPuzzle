@@ -59,7 +59,13 @@ class EcsWorld(
 
     /** Call every frame from GameScreen. Returns true if something changed (life lost / level done). */
     fun update(delta: Float): WorldEvent {
-        if (gameOver || levelComplete) return WorldEvent.None
+        if (gameOver || levelComplete) {
+            return when {
+                levelComplete -> WorldEvent.LevelComplete
+                gameOver -> WorldEvent.GameOver
+                else -> WorldEvent.None
+            }
+        }
         val delta = delta.coerceAtMost(1f / 20f)
 
         // Tick player speed boost and shield timers

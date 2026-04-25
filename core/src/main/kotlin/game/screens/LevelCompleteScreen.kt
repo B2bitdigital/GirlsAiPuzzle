@@ -37,14 +37,17 @@ class LevelCompleteScreen(
     private val cardX = cardPad
     private val cardY = 360f
 
-    private val btnNextW = (W - cardPad * 3f) / 2f
+    private val btnW = 130f
+    private val btnGap = 12f
     private val btnH = 76f
-    private val btnNextX = cardPad
-    private val btnMenuX = cardPad * 2f + btnNextW
+    private val btnRetryX = cardPad
+    private val btnNextX = cardPad + btnW + btnGap
+    private val btnMenuX = cardPad + 2 * (btnW + btnGap)
     private val btnY = 260f
 
-    private val btnNext = Rect(btnNextX, btnY, btnNextW, btnH)
-    private val btnMenu = Rect(btnMenuX, btnY, btnNextW, btnH)
+    private val btnRetry = Rect(btnRetryX, btnY, btnW, btnH)
+    private val btnNext = Rect(btnNextX, btnY, btnW, btnH)
+    private val btnMenu = Rect(btnMenuX, btnY, btnW, btnH)
 
     private var time = 0f
 
@@ -245,8 +248,11 @@ class LevelCompleteScreen(
     }
 
     private fun drawButtons() {
-        // NEXT — yellow primary
+        // RETRY — cyan
         shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.setColor(0f, 0.8f, 0.8f, 1f)
+        shapes.rect(btnRetry.x, btnRetry.y, btnRetry.w, btnRetry.h)
+        // NEXT — yellow primary
         shapes.setColor(0.918f, 0.918f, 0f, 1f)
         shapes.rect(btnNext.x, btnNext.y, btnNext.w, btnNext.h)
         // MENU — dark secondary
@@ -256,6 +262,15 @@ class LevelCompleteScreen(
 
         // Bevels
         shapes.begin(ShapeRenderer.ShapeType.Line)
+        // Retry bevel
+        shapes.setColor(0.55f, 1f, 1f, 0.5f)
+        shapes.line(btnRetry.x, btnRetry.y + btnRetry.h, btnRetry.x + btnRetry.w, btnRetry.y + btnRetry.h)
+        shapes.line(btnRetry.x, btnRetry.y, btnRetry.x, btnRetry.y + btnRetry.h)
+        shapes.setColor(0f, 0.4f, 0.4f, 0.5f)
+        shapes.line(btnRetry.x, btnRetry.y, btnRetry.x + btnRetry.w, btnRetry.y)
+        shapes.line(btnRetry.x + btnRetry.w, btnRetry.y, btnRetry.x + btnRetry.w, btnRetry.y + btnRetry.h)
+
+        // Next bevel
         shapes.setColor(1f, 1f, 0.55f, 0.5f)
         shapes.line(btnNext.x, btnNext.y + btnNext.h, btnNext.x + btnNext.w, btnNext.y + btnNext.h)
         shapes.line(btnNext.x, btnNext.y, btnNext.x, btnNext.y + btnNext.h)
@@ -263,6 +278,7 @@ class LevelCompleteScreen(
         shapes.line(btnNext.x, btnNext.y, btnNext.x + btnNext.w, btnNext.y)
         shapes.line(btnNext.x + btnNext.w, btnNext.y, btnNext.x + btnNext.w, btnNext.y + btnNext.h)
 
+        // Menu bevel
         shapes.setColor(0.35f, 0.35f, 0.35f, 0.5f)
         shapes.line(btnMenu.x, btnMenu.y + btnMenu.h, btnMenu.x + btnMenu.w, btnMenu.y + btnMenu.h)
         shapes.line(btnMenu.x, btnMenu.y, btnMenu.x, btnMenu.y + btnMenu.h)
@@ -273,12 +289,21 @@ class LevelCompleteScreen(
 
         batch.begin()
         font.data.setScale(2.2f)
+        // RETRY text
+        font.color = Color(0.055f, 0.055f, 0.055f, 1f)
+        layout.setText(font, "RETRY")
+        font.draw(batch, "RETRY",
+            btnRetry.x + (btnRetry.w - layout.width) / 2f,
+            btnRetry.y + (btnRetry.h + layout.height) / 2f)
+
+        // NEXT text
         font.color = Color(0.055f, 0.055f, 0.055f, 1f)
         layout.setText(font, "NEXT")
         font.draw(batch, "NEXT",
             btnNext.x + (btnNext.w - layout.width) / 2f,
             btnNext.y + (btnNext.h + layout.height) / 2f)
 
+        // MENU text
         font.color = Color(0.898f, 0.886f, 0.882f, 1f)
         layout.setText(font, "MENU")
         font.draw(batch, "MENU",
@@ -329,6 +354,7 @@ class LevelCompleteScreen(
         val tc = viewport.unproject(com.badlogic.gdx.math.Vector3(
             Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f))
         when {
+            btnRetry.contains(tc.x, tc.y) -> game.setScreen(GameScreen(game, levelId))
             btnNext.contains(tc.x, tc.y) -> {
                 val next = (levelId + 1).coerceAtMost(50)
                 game.setScreen(GameScreen(game, next))
