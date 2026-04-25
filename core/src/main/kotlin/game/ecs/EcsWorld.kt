@@ -31,13 +31,19 @@ class EcsWorld(
     var score: Int = 0
     var gameOver: Boolean = false
     var levelComplete: Boolean = false
+    
+    // Track last safe grid position before entering free area
+    private var lastSafeGrid: GridPoint? = null
+    // Track last processed grid position to avoid duplicate extendLine calls
+    private var lastPlayerGrid: GridPoint? = null
+    private var idCounter: Int = 1
 
     fun init() {
-        // Spawn player at center of top border
+        // Spawn player at top border (last row)
         val pc = PlayerComponent(lives = lives)
         player = EntityState(
             entity = Entity.Player(0),
-            position = PositionComponent(GameConstants.FIELD_WIDTH / 2f, 0f),
+            position = PositionComponent(GameConstants.PLAY_WIDTH / 2f, GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE),
             playerComp = pc
         )
 
@@ -46,7 +52,7 @@ class EcsWorld(
         for (enemyCfg in levelData.enemies) {
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
-                val startX = (initIdCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
+                val startX = (initIdCounter * 80f) % (GameConstants.PLAY_WIDTH - 20f) + 10f
                 val startY = (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
                 enemies.add(EntityState(
                     entity = Entity.Enemy(initIdCounter, type, enemyCfg.speed),
@@ -92,7 +98,7 @@ class EcsWorld(
         if (pc.moving) {
             val stillMoving = movement.movePlayer(
                 posArr, pc.dirX, pc.dirY, effectiveSpeed, delta,
-                territory.grid, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
+                territory.grid, territory.isPerimeter, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
             )
             pos.x = posArr[0]; pos.y = posArr[1]
             if (!stillMoving) pc.moving = false
@@ -101,8 +107,23 @@ class EcsWorld(
         // Detect territory transition
         val playerGrid = movement.toGridPoint(pos.x, pos.y)
         val onSafe = territory.isOnSafeZone(playerGrid)
+        val onPerimeter = territory.isOnPerimeter(playerGrid)
+        
+        // Track last safe position for line start
+        if (onSafe) {
+            lastSafeGrid = playerGrid
+        }
+        
         if (!onSafe && !territory.isDrawing) {
-            territory.startLine(playerGrid)
+            // Start line from last safe position, not current interior position
+            val startPt = lastSafeGrid ?: playerGrid
+            territory.startLine(startPt)
+            lastPlayerGrid = startPt
+            // Extend immediately to current position if player moved beyond start point
+            if (playerGrid != startPt) {
+                territory.extendLine(playerGrid)
+                lastPlayerGrid = playerGrid
+            }
         } else if (onSafe && territory.isDrawing) {
             val dangerousPositions = enemies
                 .filter { (it.entity as? Entity.Enemy)?.type != EnemyType.SNAIL }
@@ -113,19 +134,34 @@ class EcsWorld(
 
             when (val result = territory.closeLine(dangerousPositions, snailPositions)) {
                 is CloseResult.Success -> {
-                    // Remove enemies whose cell is now inside the conquered region
+                    val toRespawn = mutableListOf<EntityState>()
                     enemies.removeAll { eState ->
                         val gp = movement.toGridPoint(eState.position.x, eState.position.y)
-                        gp in result.conqueredCells
+                        if (gp in result.conqueredCells) { toRespawn.add(eState); true }
+                        else false
+                    }
+                    for (eState in toRespawn) {
+                        score += 1000
+                        val freeCell = territory.randomFreeCell()
+                        if (freeCell != null) {
+                            eState.position.x = freeCell.col * GameConstants.CELL_SIZE
+                            eState.position.y = freeCell.row * GameConstants.CELL_SIZE
+                            enemies.add(eState)
+                        }
                     }
                     score += calculateClaimScore(territory.conqueredPercent(), result.snailsTrapped)
+                    lastPlayerGrid = null
                     checkLevelComplete()
                 }
                 else -> {}
             }
         } else if (!onSafe && territory.isDrawing) {
-            if (territory.extendLine(playerGrid) == ExtendResult.CROSSED) {
-                return loseLife()
+            // Only extend line when player moves to a NEW cell
+            if (playerGrid != lastPlayerGrid) {
+                if (territory.extendLine(playerGrid) == ExtendResult.CROSSED) {
+                    return loseLife()
+                }
+                lastPlayerGrid = playerGrid
             }
         }
 
@@ -165,9 +201,9 @@ class EcsWorld(
 
             val shielded = (pc.shieldTimer > 0f)
 
-            // Spider/Wasp: hit player directly
+            // Spider/Wasp: hit player directly SOLO se NON su perimetro
             if (e.type == EnemyType.SPIDER || e.type == EnemyType.WASP) {
-                if (!shielded && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
+                if (!shielded && !territory.isOnPerimeter(playerGrid) && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
                     return loseLife()
                 }
             }
@@ -214,18 +250,17 @@ class EcsWorld(
         return WorldEvent.None
     }
 
-    private var idCounter = 100
-
     private fun loseLife(): WorldEvent {
         lives--
         territory.cancelLine()
+        lastSafeGrid = null  // Reset on life lost
         if (lives <= 0) {
             gameOver = true
             return WorldEvent.GameOver
         }
-        // Reset player position, re-init enemies positions
-        player.position.x = GameConstants.FIELD_WIDTH / 2f
-        player.position.y = 0f
+        // Reset player position to top border
+        player.position.x = GameConstants.PLAY_WIDTH / 2f
+        player.position.y = GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE
         player.playerComp!!.moving = false
         return WorldEvent.LifeLost
     }
