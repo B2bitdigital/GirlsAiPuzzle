@@ -15,10 +15,12 @@ class PowerupSystem(
     private val lifetime: Float = game.GameConstants.POWERUP_LIFETIME
 ) {
     private var spawnTimer = 0f
+    private var elapsedTime = 0f
 
     fun update(delta: Float, availableTypes: List<PowerupType>, grid: Array<BooleanArray>? = null): SpawnedPowerup? {
+        elapsedTime += delta
         spawnTimer += delta
-        if (spawnTimer < spawnInterval || availableTypes.isEmpty()) return null
+        if (spawnTimer < currentInterval() || availableTypes.isEmpty()) return null
         spawnTimer = 0f
 
         val type = availableTypes.random()
@@ -48,6 +50,11 @@ class PowerupSystem(
             }
             PowerupType.SHIELD -> playerComp?.let { it.shieldTimer = 4f }
         }
+    }
+
+    private fun currentInterval(): Float {
+        val reduction = (elapsedTime / 30f).toInt() * 1f
+        return (spawnInterval - reduction).coerceAtLeast(5f)
     }
 
     private fun isConquered(x: Float, y: Float, grid: Array<BooleanArray>): Boolean {
