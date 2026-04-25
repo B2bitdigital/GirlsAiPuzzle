@@ -2,7 +2,9 @@ package game.ecs
 
 import game.GameConstants
 import game.ecs.systems.*
+import game.ecs.systems.DifficultySystem
 import game.ecs.systems.ExtendResult
+import game.ecs.systems.SpawnedEnemy
 import game.level.LevelData
 import game.persistence.GamePrefs
 
@@ -17,6 +19,7 @@ class EcsWorld(
     val movement = MovementSystem()
     val enemyAI = EnemyAISystem()
     val powerupSys = PowerupSystem()
+    val difficultySys = DifficultySystem(levelData.id)
 
     // Entity states
     lateinit var player: EntityState
@@ -126,6 +129,22 @@ class EcsWorld(
             }
         }
 
+        // Dynamic difficulty: apply speed multiplier and spawn extra enemies
+        val speedMult = difficultySys.speedMultiplier()
+        val newEnemy = difficultySys.update(delta, enemies.size)
+        if (newEnemy != null) {
+            enemies.add(EntityState(
+                entity = Entity.Enemy(idCounter++, newEnemy.type, newEnemy.speed),
+                position = PositionComponent(newEnemy.x, newEnemy.y),
+                velocity = VelocityComponent(),
+                enemyComp = EnemyComponent(
+                    speed = newEnemy.speed,
+                    dirX = newEnemy.dirX,
+                    dirY = newEnemy.dirY
+                )
+            ))
+        }
+
         // Move enemies + collision
         for (eState in enemies) {
             val e = eState.entity as Entity.Enemy
@@ -137,7 +156,8 @@ class EcsWorld(
 
             enemyAI.updateEnemy(
                 type = e.type, pos = ePosArr, dirX = eDirX, dirY = eDirY,
-                speed = ec.speed, freezeTimer = ec.freezeTimer, delta = delta,
+                speed = ec.speed * speedMult,
+                freezeTimer = ec.freezeTimer, delta = delta,
                 grid = territory.grid, playerX = pos.x, playerY = pos.y
             )
             ePos.x = ePosArr[0]; ePos.y = ePosArr[1]
