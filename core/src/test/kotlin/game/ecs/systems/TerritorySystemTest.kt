@@ -14,14 +14,18 @@ class TerritorySystemTest {
     }
 
     @Test
-    fun `border cells are conquered on init`() {
+    fun `border cells are perimeter on init`() {
         for (c in 0 until 10) {
-            assertTrue("top border c=$c", ts.grid[c][0])
-            assertTrue("bottom border c=$c", ts.grid[c][9])
+            assertTrue("top border c=$c", ts.isPerimeter[c][0])
+            assertTrue("bottom border c=$c", ts.isPerimeter[c][9])
+            assertFalse("top border not conquered c=$c", ts.grid[c][0])
+            assertFalse("bottom border not conquered c=$c", ts.grid[c][9])
         }
         for (r in 0 until 10) {
-            assertTrue("left border r=$r", ts.grid[0][r])
-            assertTrue("right border r=$r", ts.grid[9][r])
+            assertTrue("left border r=$r", ts.isPerimeter[0][r])
+            assertTrue("right border r=$r", ts.isPerimeter[9][r])
+            assertFalse("left border not conquered r=$r", ts.grid[0][r])
+            assertFalse("right border not conquered r=$r", ts.grid[9][r])
         }
     }
 
@@ -32,10 +36,9 @@ class TerritorySystemTest {
     }
 
     @Test
-    fun `conquered percent accounts for border`() {
-        // 10x10 = 100 cells. Border = 2*(10+8) = 36 cells.
+    fun `conquered percent excludes border on init`() {
         val pct = ts.conqueredPercent()
-        assertEquals(36f, pct, 0.1f)
+        assertEquals(0f, pct, 0.1f)
     }
 
     @Test
@@ -117,8 +120,7 @@ class TerritorySystemTest {
     }
 
     @Test
-    fun `isOnPerimeter returns true for conquered cell adjacent to free cell`() {
-        // col=0 row=5: conquered, neighbor (1,5) is free → perimeter
+    fun `isOnPerimeter returns true for field edge`() {
         assertTrue(ts.isOnPerimeter(GridPoint(0, 5)))
     }
 
@@ -133,5 +135,39 @@ class TerritorySystemTest {
         for (c in 0 until 10) for (r in 0 until 10) ts.grid[c][r] = true
         // Cell (5,5): all 4 neighbors are conquered, not on field edge → interior
         assertFalse(ts.isOnPerimeter(GridPoint(5, 5)))
+    }
+
+    @Test
+    fun `stub line not reaching other border conquers only line cells`() {
+        // Line from left border to same border without enclosing area — only line cells should be conquered
+        ts.startLine(GridPoint(0, 5))
+        ts.extendLine(GridPoint(1, 5))
+        ts.extendLine(GridPoint(1, 4))
+        ts.extendLine(GridPoint(0, 4))
+
+        val result = ts.closeLine(emptyList(), emptyList())
+        assertTrue(result is CloseResult.Success)
+
+        // Only line cells (1,5) and (1,4) should be conquered — interior must remain free
+        assertTrue("line cell (1,5) conquered", ts.grid[1][5])
+        assertTrue("line cell (1,4) conquered", ts.grid[1][4])
+        // Vast interior still free — not mass-conquered
+        assertFalse("interior (5,5) still free", ts.grid[5][5])
+        assertFalse("interior (5,3) still free", ts.grid[5][3])
+        assertFalse("interior (8,8) still free", ts.grid[8][8])
+    }
+
+    @Test
+    fun `randomFreeCell returns null when all cells conquered`() {
+        ts.revealAll()
+        assertNull(ts.randomFreeCell())
+    }
+
+    @Test
+    fun `randomFreeCell returns interior free cell when field partially free`() {
+        val cell = ts.randomFreeCell()
+        assertNotNull(cell)
+        assertFalse("returned cell must not be conquered", ts.grid[cell!!.col][cell.row])
+        assertFalse("returned cell must not be perimeter", ts.isPerimeter[cell.col][cell.row])
     }
 }

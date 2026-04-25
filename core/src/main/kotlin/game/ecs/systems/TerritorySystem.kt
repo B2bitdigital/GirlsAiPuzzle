@@ -183,4 +183,14 @@ class TerritorySystem(
             }
         }
     }
+
+    fun randomFreeCell(): GridPoint? {
+        val free = mutableListOf<GridPoint>()
+        for (c in 0 until cols) {
+            for (r in 0 until rows) {
+                if (!grid[c][r] && !isPerimeter[c][r]) free.add(GridPoint(c, r))
+            }
+        }
+        return free.randomOrNull()
+    }
 }
