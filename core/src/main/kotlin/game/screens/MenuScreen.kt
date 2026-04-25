@@ -27,11 +27,11 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
     private val H = GameConstants.FIELD_HEIGHT
 
     // Primary full-width PLAY button
-    private val btnPlay   = Rect(16f, 540f, 448f, 80f)
+    private val btnPlay   = Rect(16f, 430f, 448f, 84f)
     // Secondary side-by-side buttons
-    private val btnLevels = Rect(16f, 452f, 214f, 76f)
+    private val btnLevels = Rect(16f, 316f, 214f, 76f)
     // (settings placeholder — non-functional, right half)
-    private val btnSettingsArea = Rect(246f, 452f, 218f, 76f)
+    private val btnSettingsArea = Rect(246f, 316f, 218f, 76f)
 
     private var time = 0f
 
@@ -139,7 +139,7 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         font.data.setScale(1.3f)
         font.color = Color(0.792f, 0.784f, 0.667f, 1f)
         layout.setText(font, "AI-POWERED PUZZLE")
-        font.draw(batch, "AI-POWERED PUZZLE", (W - layout.width) / 2f, 650f)
+        font.draw(batch, "AI-POWERED PUZZLE", (W - layout.width) / 2f, 648f)
         font.data.setScale(1f)
         batch.end()
 
@@ -151,7 +151,7 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         for (i in 0..3) {
             val lit = i < 2
             shapes.setColor(if (lit) 0.918f else 0.208f, if (lit) 0.918f else 0.208f, 0f, 1f)
-            shapes.rect(dotX + i * (dotSz + dotGap), 618f, dotSz, dotSz)
+            shapes.rect(dotX + i * (dotSz + dotGap), 556f, dotSz, dotSz)
         }
         shapes.end()
     }
@@ -223,20 +223,20 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         font.data.setScale(1.0f)
         font.color = Color(0.576f, 0.573f, 0.467f, 1f)
         layout.setText(font, "BEST SCORE")
-        font.draw(batch, "BEST SCORE", (W - layout.width) / 2f, 420f)
+        font.draw(batch, "BEST SCORE", (W - layout.width) / 2f, 230f)
 
         font.data.setScale(2.2f)
         font.color = Color(0.918f, 0.918f, 0f, 1f)
         val hsText = formatScore(hs)
         layout.setText(font, hsText)
-        font.draw(batch, hsText, (W - layout.width) / 2f, 398f)
+        font.draw(batch, hsText, (W - layout.width) / 2f, 205f)
         font.data.setScale(1f)
         batch.end()
 
         // Two cyan indicator dots
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0f, 0.859f, 0.914f, 1f)
-        val dotY = 358f
+        val dotY = 165f
         shapes.rect(W / 2f - 10f, dotY, 8f, 8f)
         shapes.rect(W / 2f + 2f, dotY, 8f, 8f)
         shapes.end()
