@@ -131,14 +131,20 @@ class GameScreen(
         batch.begin()
         val grid = world.territory.grid
         val cs = GameConstants.CELL_SIZE
+        val texW = tex.width.toFloat()
+        val texH = tex.height.toFloat()
+        val cellTexW = texW / GameConstants.GRID_COLS
+        val cellTexH = texH / GameConstants.GRID_ROWS
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
                 if (grid[c][r]) {
-                    val srcY = tex.height - (r + 1) * cs.toInt()
+                    val srcX = (c * cellTexW).toInt()
+                    val srcY = (texH - (r + 1) * cellTexH).toInt()
+                    val srcW = cellTexW.toInt().coerceAtLeast(1)
+                    val srcH = cellTexH.toInt().coerceAtLeast(1)
                     batch.draw(tex,
                         c * cs, r * cs, cs, cs,
-                        (c * cs).toInt(), srcY,
-                        cs.toInt(), cs.toInt(),
+                        srcX, srcY, srcW, srcH,
                         false, false)
                 }
             }
