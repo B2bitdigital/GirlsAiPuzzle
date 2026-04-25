@@ -39,36 +39,37 @@ class TerritorySystemTest {
     }
 
     @Test
-    fun `close line with no enemies conquers enclosed interior`() {
-        // Line at col=3 from row=0 to row=9 splits field
+    fun `close line always captures smallest region`() {
+        // Line at col=3: left region = cols 1-2 (16 cells), right region = cols 4-8 (40 cells)
         ts.startLine(GridPoint(3, 0))
         for (r in 1 until 9) ts.extendLine(GridPoint(3, r))
         ts.extendLine(GridPoint(3, 9))
 
         val result = ts.closeLine(emptyList(), emptyList())
         assertTrue(result is CloseResult.Success)
-        // Both sides (cols 1-2 and cols 4-8) should be conquered — no enemies
-        assertTrue(ts.grid[1][5])
-        assertTrue(ts.grid[5][5])
+        // Smallest region (left, cols 1-2) is conquered
+        assertTrue("smallest side conquered", ts.grid[1][5])
+        // Larger region (right, cols 4-8) stays free
+        assertFalse("larger side stays free", ts.grid[5][5])
     }
 
     @Test
-    fun `close line with dangerous enemy — enemy side stays free, other side captured`() {
-        // Line at col=3: left region = cols 1-2, right region = cols 4-8
+    fun `close line captures smallest region regardless of enemy position`() {
+        // Line at col=3: left region = cols 1-2 (smaller), right region = cols 4-8 (larger)
         ts.startLine(GridPoint(3, 0))
         for (r in 1 until 9) ts.extendLine(GridPoint(3, r))
         ts.extendLine(GridPoint(3, 9))
 
-        // Enemy at (1,4) — inside left region
+        // Enemy at (1,4) — inside left/smaller region
         val result = ts.closeLine(
             dangerousEnemies = listOf(GridPoint(1, 4)),
             snails = emptyList()
         )
         assertTrue(result is CloseResult.Success)
-        // Left region (enemy side) stays free
-        assertFalse("enemy side should remain free", ts.grid[1][5])
-        // Right region (no enemy) gets conquered
-        assertTrue("far side should be conquered", ts.grid[5][5])
+        // Smallest region (left) is always conquered, even with enemy inside
+        assertTrue("smallest side conquered", ts.grid[1][5])
+        // Larger region (right) stays free
+        assertFalse("larger side stays free", ts.grid[5][5])
         // Line cells become permanent border
         assertTrue("line cells conquered", ts.grid[3][4])
     }
