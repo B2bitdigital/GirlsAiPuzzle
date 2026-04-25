@@ -58,6 +58,7 @@ class TerritorySystem(
         if (pt !in _currentLine) _currentLine.add(pt)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun closeLine(
         dangerousEnemies: List<GridPoint>,
         snails: List<GridPoint>
