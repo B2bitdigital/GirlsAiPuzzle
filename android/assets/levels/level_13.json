@@ -2,7 +2,7 @@
   "id": 13,
   "background": "backgrounds/bg_13.png",
   "timeSeconds": 75,
-  "targetPercent": 75,
+  "targetPercent": 90,
   "enemies": [
     {
       "type": "spider",
