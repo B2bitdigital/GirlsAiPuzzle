@@ -164,7 +164,7 @@ class EcsWorld(
         if (timeRemaining <= 0f) return loseLife()
 
         val timerRef = floatArrayOf(timeRemaining)
-        val spawnResult = powerupSys.update(delta, levelData.powerupTypes())
+        val spawnResult = powerupSys.update(delta, levelData.powerupTypes(), territory.grid)
         if (spawnResult != null) {
             activePowerups.add(EntityState(
                 entity = Entity.Powerup(idCounter++, spawnResult.type),
