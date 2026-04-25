@@ -10,6 +10,8 @@ sealed class CloseResult {
     ) : CloseResult()
 }
 
+enum class ExtendResult { OK, CROSSED }
+
 class TerritorySystem(
     val cols: Int = game.GameConstants.GRID_COLS,
     val rows: Int = game.GameConstants.GRID_ROWS
@@ -54,8 +56,17 @@ class TerritorySystem(
         isDrawing = true
     }
 
-    fun extendLine(pt: GridPoint) {
-        if (pt !in _currentLine) _currentLine.add(pt)
+    fun extendLine(pt: GridPoint): ExtendResult {
+        if (_currentLine.isEmpty()) return ExtendResult.OK
+        // Backtrack: stepping back onto the previous cell is allowed
+        if (_currentLine.size >= 2 && pt == _currentLine[_currentLine.size - 2]) {
+            _currentLine.removeAt(_currentLine.size - 1)
+            return ExtendResult.OK
+        }
+        // Crossing: cell already in line (not the immediately previous position)
+        if (pt in _currentLine) return ExtendResult.CROSSED
+        _currentLine.add(pt)
+        return ExtendResult.OK
     }
 
     @Suppress("UNUSED_PARAMETER")

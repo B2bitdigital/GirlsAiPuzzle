@@ -2,6 +2,7 @@ package game.ecs
 
 import game.GameConstants
 import game.ecs.systems.*
+import game.ecs.systems.ExtendResult
 import game.level.LevelData
 import game.persistence.GamePrefs
 
@@ -120,7 +121,9 @@ class EcsWorld(
                 else -> {}
             }
         } else if (!onSafe && territory.isDrawing) {
-            territory.extendLine(playerGrid)
+            if (territory.extendLine(playerGrid) == ExtendResult.CROSSED) {
+                return loseLife()
+            }
         }
 
         // Move enemies + collision
