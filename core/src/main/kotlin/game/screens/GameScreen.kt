@@ -55,6 +55,8 @@ class GameScreen(
     private var nextPressed = false
     private var menuPressed = false
 
+    private val OVERLAY_PANEL_H = 340f
+
     override fun show() {
         val json = Gdx.files.internal("levels/level_%02d.json".format(levelId)).readString()
         val levelData = LevelLoader.fromJson(json)
@@ -75,7 +77,7 @@ class GameScreen(
                     val panelW = W * 0.82f
                     val panelX = (W - panelW) / 2f
                     val btnW = panelW / 3f - 12f
-                    val btnY = (GameConstants.FIELD_HEIGHT - GameConstants.HUD_HEIGHT - 340f) / 2f + 52f
+                    val btnY = (GameConstants.FIELD_HEIGHT - GameConstants.HUD_HEIGHT - OVERLAY_PANEL_H) / 2f + 52f
                     val btnH = 38f
                     val wx = worldCoords.x; val wy = worldCoords.y
                     retryPressed = wx >= panelX + 10f && wx <= panelX + 10f + btnW && wy >= btnY && wy <= btnY + btnH
@@ -419,7 +421,7 @@ class GameScreen(
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
         val panelW = W * 0.82f
-        val panelH = 340f
+        val panelH = OVERLAY_PANEL_H
         val panelX = (W - panelW) / 2f
         val panelY = (H - hudH - panelH) / 2f
 
@@ -505,8 +507,6 @@ class GameScreen(
             menuPressed  -> { menuPressed = false; game.setScreen(MenuScreen(game)) }
         }
     }
-
-    private fun createConqueredMask() = Unit
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun hide() { Gdx.input.inputProcessor = null }
