@@ -95,13 +95,13 @@ class EnemyAISystem(
             pos[0] = nx
             dirX[0] = dx / len
         } else {
-            dirX[0] = -dirX[0]
+            dirX[0] = -(dx / len)
         }
         if (!isConquered(pos[0], ny, grid) && ny > 0f && ny < fieldHeight - 1f) {
             pos[1] = ny
             dirY[0] = dy / len
         } else {
-            dirY[0] = -dirY[0]
+            dirY[0] = -(dy / len)
         }
     }
 
