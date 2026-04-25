@@ -15,7 +15,6 @@ class TerritorySystemTest {
 
     @Test
     fun `border cells are conquered on init`() {
-        // all col=0, col=9, row=0, row=9 cells must be conquered
         for (c in 0 until 10) {
             assertTrue("top border c=$c", ts.grid[c][0])
             assertTrue("bottom border c=$c", ts.grid[c][9])
@@ -40,34 +39,38 @@ class TerritorySystemTest {
     }
 
     @Test
-    fun `close line with no enemies conquers interior`() {
-        // Draw a line from (3,0) to (3,9) — splits field into left (cols 0-3) and right (cols 4-9)
-        // Col 3 entire column: mark as line then close
+    fun `close line with no enemies conquers enclosed interior`() {
+        // Line at col=3 from row=0 to row=9 splits field
         ts.startLine(GridPoint(3, 0))
         for (r in 1 until 9) ts.extendLine(GridPoint(3, r))
         ts.extendLine(GridPoint(3, 9))
 
         val result = ts.closeLine(emptyList(), emptyList())
         assertTrue(result is CloseResult.Success)
-        // Left region (col 1-2, row 1-8) should be conquered
-        assertTrue(ts.grid[1][1])
-        assertTrue(ts.grid[2][5])
+        // Both sides (cols 1-2 and cols 4-8) should be conquered — no enemies
+        assertTrue(ts.grid[1][5])
+        assertTrue(ts.grid[5][5])
     }
 
     @Test
-    fun `close line with dangerous enemy in enclosed region returns EnemyTrapped`() {
+    fun `close line with dangerous enemy — enemy side stays free, other side captured`() {
+        // Line at col=3: left region = cols 1-2, right region = cols 4-8
         ts.startLine(GridPoint(3, 0))
         for (r in 1 until 9) ts.extendLine(GridPoint(3, r))
         ts.extendLine(GridPoint(3, 9))
 
-        // Enemy at (1,4) — inside left enclosed region
+        // Enemy at (1,4) — inside left region
         val result = ts.closeLine(
             dangerousEnemies = listOf(GridPoint(1, 4)),
             snails = emptyList()
         )
-        assertTrue(result is CloseResult.EnemyTrapped)
-        // Line cells must be restored to FREE
-        assertFalse(ts.grid[3][4])
+        assertTrue(result is CloseResult.Success)
+        // Left region (enemy side) stays free
+        assertFalse("enemy side should remain free", ts.grid[1][5])
+        // Right region (no enemy) gets conquered
+        assertTrue("far side should be conquered", ts.grid[5][5])
+        // Line cells become permanent border
+        assertTrue("line cells conquered", ts.grid[3][4])
     }
 
     @Test
@@ -103,5 +106,31 @@ class TerritorySystemTest {
         ts.extendLine(GridPoint(3, 9))
         ts.closeLine(emptyList(), emptyList())
         assertTrue(ts.conqueredPercent() > before)
+    }
+
+    @Test
+    fun `isOnPerimeter returns true for border field edge`() {
+        // Field edge cells always have out-of-bounds neighbor → perimeter
+        assertTrue(ts.isOnPerimeter(GridPoint(0, 0)))
+        assertTrue(ts.isOnPerimeter(GridPoint(5, 0)))
+    }
+
+    @Test
+    fun `isOnPerimeter returns true for conquered cell adjacent to free cell`() {
+        // col=0 row=5: conquered, neighbor (1,5) is free → perimeter
+        assertTrue(ts.isOnPerimeter(GridPoint(0, 5)))
+    }
+
+    @Test
+    fun `isOnPerimeter returns false for free cell`() {
+        assertFalse(ts.isOnPerimeter(GridPoint(5, 5)))
+    }
+
+    @Test
+    fun `isOnPerimeter returns false for interior conquered cell`() {
+        // Conquer entire grid manually (simulating total capture)
+        for (c in 0 until 10) for (r in 0 until 10) ts.grid[c][r] = true
+        // Cell (5,5): all 4 neighbors are conquered, not on field edge → interior
+        assertFalse(ts.isOnPerimeter(GridPoint(5, 5)))
     }
 }

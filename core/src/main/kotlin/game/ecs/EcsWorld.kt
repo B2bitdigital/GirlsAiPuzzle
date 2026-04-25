@@ -60,6 +60,7 @@ class EcsWorld(
     /** Call every frame from GameScreen. Returns true if something changed (life lost / level done). */
     fun update(delta: Float): WorldEvent {
         if (gameOver || levelComplete) return WorldEvent.None
+        val delta = delta.coerceAtMost(1f / 20f)
 
         // Tick player speed boost and shield timers
         player.playerComp?.let { pc ->
@@ -78,9 +79,13 @@ class EcsWorld(
         val pos = player.position
         val effectiveSpeed = GameConstants.PLAYER_SPEED * pc.speedMultiplier
         val posArr = floatArrayOf(pos.x, pos.y)
-        if (pc.targetX >= 0f) {
-            movement.movePlayerToward(posArr, pc.targetX, pc.targetY, effectiveSpeed, delta)
+        if (pc.moving) {
+            val stillMoving = movement.movePlayer(
+                posArr, pc.dirX, pc.dirY, effectiveSpeed, delta,
+                territory.grid, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
+            )
             pos.x = posArr[0]; pos.y = posArr[1]
+            if (!stillMoving) pc.moving = false
         }
 
         // Detect territory transition
@@ -97,7 +102,6 @@ class EcsWorld(
                 .map { movement.toGridPoint(it.position.x, it.position.y) }
 
             when (val result = territory.closeLine(dangerousPositions, snailPositions)) {
-                is CloseResult.EnemyTrapped -> return loseLife()
                 is CloseResult.Success -> {
                     score += calculateClaimScore(territory.conqueredPercent(), result.snailsTrapped)
                     checkLevelComplete()
@@ -133,8 +137,8 @@ class EcsWorld(
                     return loseLife()
                 }
             }
-            // Cockroach: hits line in construction
-            if (e.type == EnemyType.COCKROACH && territory.isDrawing && !shielded) {
+            // All dangerous enemies (Spider, Cockroach, Wasp): hit open line → lose life
+            if (e.type != EnemyType.SNAIL && territory.isDrawing && !shielded) {
                 if (collision.enemyHitsLine(ePos.x, ePos.y, territory.currentLine)) {
                     return loseLife()
                 }
@@ -188,7 +192,7 @@ class EcsWorld(
         // Reset player position, re-init enemies positions
         player.position.x = GameConstants.FIELD_WIDTH / 2f
         player.position.y = 0f
-        player.playerComp!!.targetX = -1f
+        player.playerComp!!.moving = false
         return WorldEvent.LifeLost
     }
 

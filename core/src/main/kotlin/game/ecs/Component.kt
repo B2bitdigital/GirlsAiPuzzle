@@ -11,8 +11,9 @@ data class VelocityComponent(var vx: Float = 0f, var vy: Float = 0f)
 data class PlayerComponent(
     var lives: Int,
     var score: Int = 0,
-    var targetX: Float = -1f,
-    var targetY: Float = -1f,
+    var dirX: Float = 0f,
+    var dirY: Float = 0f,
+    var moving: Boolean = false,
     var speedMultiplier: Float = 1f,
     var speedBoostTimer: Float = 0f,
     var shieldTimer: Float = 0f

@@ -1,49 +1,54 @@
 package game.ecs.systems
 
 import kotlin.math.abs
-import kotlin.math.min
-import kotlin.math.sign
 
 class MovementSystem(
     private val cellSize: Float = game.GameConstants.CELL_SIZE,
     private val fieldWidth: Float = game.GameConstants.FIELD_WIDTH,
     private val fieldHeight: Float = game.GameConstants.FIELD_HEIGHT
 ) {
-    private val snapThreshold = cellSize * 0.5f
-
     /**
-     * Move player position toward (targetX, targetY) at given speed.
-     * Moves horizontally first, then vertically. pos = [x, y] (mutated in place).
+     * Move player in direction (dirX, dirY) at given speed for one frame.
+     * Returns false if movement is blocked (boundary or interior conquered cell).
+     * pos = [x, y], mutated in place.
      */
-    fun movePlayerToward(
+    fun movePlayer(
         pos: FloatArray,
-        targetX: Float, targetY: Float,
-        speed: Float, delta: Float
-    ) {
-        val dist = speed * delta
-        val dx = targetX - pos[0]
-        val dy = targetY - pos[1]
+        dirX: Float, dirY: Float,
+        speed: Float, delta: Float,
+        grid: Array<BooleanArray>,
+        cols: Int, rows: Int
+    ): Boolean {
+        val nextX = pos[0] + dirX * speed * delta
+        val nextY = pos[1] + dirY * speed * delta
 
-        when {
-            abs(dx) > snapThreshold -> {
-                val step = min(abs(dx), dist) * sign(dx)
-                pos[0] = (pos[0] + step).coerceIn(0f, fieldWidth)
-            }
-            abs(dy) > snapThreshold -> {
-                val step = min(abs(dy), dist) * sign(dy)
-                pos[1] = (pos[1] + step).coerceIn(0f, fieldHeight)
-            }
-            else -> {
-                pos[0] = targetX
-                pos[1] = targetY
-            }
+        if (nextX < 0f || nextX >= cols * this.cellSize || nextY < 0f || nextY >= rows * this.cellSize) {
+            return false
         }
+
+        val nextCol = (nextX / this.cellSize).toInt().coerceIn(0, cols - 1)
+        val nextRow = (nextY / this.cellSize).toInt().coerceIn(0, rows - 1)
+
+        if (isInteriorConquered(GridPoint(nextCol, nextRow), grid, cols, rows)) {
+            return false
+        }
+
+        pos[0] = nextX
+        pos[1] = nextY
+        return true
     }
 
-    /** Snap a pixel coordinate to nearest grid cell center */
-    fun snapToGrid(v: Float): Float {
-        val cell = (v / cellSize).toInt()
-        return cell * cellSize + cellSize / 2f
+    private fun isInteriorConquered(
+        pt: GridPoint,
+        grid: Array<BooleanArray>,
+        cols: Int, rows: Int
+    ): Boolean {
+        if (!grid[pt.col][pt.row]) return false
+        val dirs = listOf(0 to 1, 0 to -1, 1 to 0, -1 to 0)
+        return dirs.all { (dc, dr) ->
+            val nc = pt.col + dc; val nr = pt.row + dr
+            nc in 0 until cols && nr in 0 until rows && grid[nc][nr]
+        }
     }
 
     /** Convert pixel position to GridPoint */

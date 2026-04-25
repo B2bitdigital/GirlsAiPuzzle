@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.FitViewport
 import game.GameConstants
 import game.GirlsPanicGame
@@ -20,6 +21,8 @@ import game.ecs.Entity
 import game.ecs.WorldEvent
 import game.ecs.systems.GridPoint
 import game.level.LevelLoader
+import kotlin.math.abs
+import kotlin.math.sign
 
 class GameScreen(
     private val game: GirlsPanicGame,
@@ -58,9 +61,12 @@ class GameScreen(
 
         Gdx.input.inputProcessor = object : InputAdapter() {
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                val worldCoords = viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f))
-                world.player.playerComp!!.targetX = worldCoords.x.coerceIn(0f, GameConstants.FIELD_WIDTH)
-                world.player.playerComp!!.targetY = worldCoords.y.coerceIn(0f, GameConstants.FIELD_HEIGHT)
+                applyDirection(screenX, screenY)
+                return true
+            }
+
+            override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+                applyDirection(screenX, screenY)
                 return true
             }
         }
@@ -104,6 +110,22 @@ class GameScreen(
         }
     }
 
+    private fun applyDirection(screenX: Int, screenY: Int) {
+        val worldCoords = viewport.unproject(Vector3(screenX.toFloat(), screenY.toFloat(), 0f))
+        val pc = world.player.playerComp ?: return
+        val pos = world.player.position
+        val dx = worldCoords.x - pos.x
+        val dy = worldCoords.y - pos.y
+        if (abs(dx) > 5f || abs(dy) > 5f) {
+            if (abs(dx) > abs(dy)) {
+                pc.dirX = sign(dx); pc.dirY = 0f
+            } else {
+                pc.dirX = 0f; pc.dirY = sign(dy)
+            }
+            pc.moving = true
+        }
+    }
+
     private fun drawBackground() {
         val tex = bgTexture ?: return
         batch.begin()
@@ -112,9 +134,10 @@ class GameScreen(
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
                 if (grid[c][r]) {
+                    val srcY = tex.height - (r + 1) * cs.toInt()
                     batch.draw(tex,
                         c * cs, r * cs, cs, cs,
-                        (c * cs).toInt(), (r * cs).toInt(),
+                        (c * cs).toInt(), srcY,
                         cs.toInt(), cs.toInt(),
                         false, false)
                 }
@@ -232,17 +255,15 @@ class GameScreen(
         shapes.circle(pos.x, pos.y, 6f + pulse * 1.5f, 20)
         shapes.end()
 
-        // Direction dot
+        // Direction indicator
         val pc = world.player.playerComp
-        if (pc != null) {
-            val tx = pc.targetX; val ty = pc.targetY
-            val dx = tx - pos.x; val dy = ty - pos.y
-            val len = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
-            if (len > 5f) {
+        if (pc != null && pc.moving) {
+            val dx = pc.dirX * 18f
+            val dy = pc.dirY * 18f
+            if (dx != 0f || dy != 0f) {
                 shapes.begin(ShapeRenderer.ShapeType.Line)
                 shapes.setColor(0f, 1f, 1f, 0.35f)
-                shapes.line(pos.x, pos.y,
-                    pos.x + dx / len * 18f, pos.y + dy / len * 18f)
+                shapes.line(pos.x, pos.y, pos.x + dx, pos.y + dy)
                 shapes.end()
             }
         }
