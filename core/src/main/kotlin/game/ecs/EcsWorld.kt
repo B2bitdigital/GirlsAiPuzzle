@@ -43,7 +43,7 @@ class EcsWorld(
         val pc = PlayerComponent(lives = lives)
         player = EntityState(
             entity = Entity.Player(0),
-            position = PositionComponent(GameConstants.PLAY_WIDTH / 2f, GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE),
+            position = PositionComponent(GameConstants.FIELD_WIDTH / 2f, GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE),
             playerComp = pc
         )
 
@@ -52,7 +52,7 @@ class EcsWorld(
         for (enemyCfg in levelData.enemies) {
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
-                val startX = (initIdCounter * 80f) % (GameConstants.PLAY_WIDTH - 20f) + 10f
+                val startX = (initIdCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
                 val startY = (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
                 enemies.add(EntityState(
                     entity = Entity.Enemy(initIdCounter, type, enemyCfg.speed),
@@ -98,7 +98,7 @@ class EcsWorld(
         if (pc.moving) {
             val stillMoving = movement.movePlayer(
                 posArr, pc.dirX, pc.dirY, effectiveSpeed, delta,
-                territory.grid, territory.isPerimeter, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
+                territory.grid, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
             )
             pos.x = posArr[0]; pos.y = posArr[1]
             if (!stillMoving) pc.moving = false
@@ -259,7 +259,7 @@ class EcsWorld(
             return WorldEvent.GameOver
         }
         // Reset player position to top border
-        player.position.x = GameConstants.PLAY_WIDTH / 2f
+        player.position.x = GameConstants.FIELD_WIDTH / 2f
         player.position.y = GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE
         player.playerComp!!.moving = false
         return WorldEvent.LifeLost
