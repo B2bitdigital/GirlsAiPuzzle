@@ -4,7 +4,10 @@ data class GridPoint(val col: Int, val row: Int)
 
 sealed class CloseResult {
     object Empty : CloseResult()
-    data class Success(val snailsTrapped: Int = 0) : CloseResult()
+    data class Success(
+        val snailsTrapped: Int = 0,
+        val conqueredCells: Set<GridPoint> = emptySet()
+    ) : CloseResult()
 }
 
 class TerritorySystem(
@@ -55,13 +58,6 @@ class TerritorySystem(
         if (pt !in _currentLine) _currentLine.add(pt)
     }
 
-    /**
-     * Close the current drawing line. Captures the territory NOT reachable
-     * from any dangerous enemy (i.e., the side separated from enemies by the line).
-     *
-     * dangerousEnemies: grid positions of Spider, Cockroach, Wasp.
-     * snails: positions of Snail enemies (bonus if trapped).
-     */
     fun closeLine(
         dangerousEnemies: List<GridPoint>,
         snails: List<GridPoint>
@@ -74,40 +70,55 @@ class TerritorySystem(
 
         val lineCells = _currentLine.toSet()
 
-        // Mark line cells as conquered (permanent — they become border)
+        // Mark line cells as conquered (they become the new border)
         lineCells.forEach { grid[it.col][it.row] = true }
 
-        // Flood-fill from every dangerous enemy to find "open" territory
-        // (the side of the line that enemies occupy — must remain free)
-        val openCells = mutableSetOf<GridPoint>()
-        for (enemy in dangerousEnemies) {
-            if (enemy.col in 0 until cols && enemy.row in 0 until rows
-                && !grid[enemy.col][enemy.row]) {
-                floodFillFrom(enemy, openCells)
-            }
+        // Find all disjoint free regions created by the closed line
+        val regions = findAllFreeRegions()
+
+        if (regions.isEmpty()) {
+            _currentLine.clear()
+            isDrawing = false
+            return CloseResult.Success(conqueredCells = lineCells)
         }
 
-        // Enclosed = free cells not reachable from any dangerous enemy
-        val enclosed = mutableSetOf<GridPoint>()
-        for (c in 0 until cols) {
-            for (r in 0 until rows) {
-                val pt = GridPoint(c, r)
-                if (!grid[c][r] && pt !in openCells) enclosed.add(pt)
-            }
-        }
+        // Always conquer the smallest region
+        val smallest = regions.minByOrNull { it.size }!!
 
-        // Conquer enclosed cells
-        enclosed.forEach { grid[it.col][it.row] = true }
-        val snailsTrapped = snails.count { it in enclosed }
+        // Conquer smallest region
+        smallest.forEach { grid[it.col][it.row] = true }
+
+        val snailsTrapped = snails.count { it in smallest }
 
         _currentLine.clear()
         isDrawing = false
-        return CloseResult.Success(snailsTrapped)
+        return CloseResult.Success(
+            snailsTrapped = snailsTrapped,
+            conqueredCells = smallest + lineCells
+        )
     }
 
     fun cancelLine() {
         _currentLine.clear()
         isDrawing = false
+    }
+
+    private fun findAllFreeRegions(): List<Set<GridPoint>> {
+        val visited = mutableSetOf<GridPoint>()
+        val regions = mutableListOf<Set<GridPoint>>()
+
+        for (c in 0 until cols) {
+            for (r in 0 until rows) {
+                val pt = GridPoint(c, r)
+                if (!grid[c][r] && pt !in visited) {
+                    val region = mutableSetOf<GridPoint>()
+                    floodFillFrom(pt, region)
+                    visited.addAll(region)
+                    regions.add(region)
+                }
+            }
+        }
+        return regions
     }
 
     /**

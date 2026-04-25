@@ -109,6 +109,11 @@ class EcsWorld(
 
             when (val result = territory.closeLine(dangerousPositions, snailPositions)) {
                 is CloseResult.Success -> {
+                    // Remove enemies whose cell is now inside the conquered region
+                    enemies.removeAll { eState ->
+                        val gp = movement.toGridPoint(eState.position.x, eState.position.y)
+                        gp in result.conqueredCells
+                    }
                     score += calculateClaimScore(territory.conqueredPercent(), result.snailsTrapped)
                     checkLevelComplete()
                 }
