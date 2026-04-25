@@ -206,7 +206,8 @@ class EcsWorld(
         (pct * 10).toInt() + snailBonus * 500
 
     private fun checkLevelComplete() {
-        if (territory.conqueredPercent() >= levelData.targetPercent) {
+        val threshold = maxOf(levelData.targetPercent.toFloat(), GameConstants.LEVEL_COMPLETE_THRESHOLD)
+        if (territory.conqueredPercent() >= threshold) {
             levelComplete = true
         }
     }
