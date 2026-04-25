@@ -115,6 +115,12 @@ class TerritorySystem(
         isDrawing = false
     }
 
+    fun revealAll() {
+        for (c in 0 until cols) for (r in 0 until rows) grid[c][r] = true
+        _currentLine.clear()
+        isDrawing = false
+    }
+
     private fun findAllFreeRegions(): List<Set<GridPoint>> {
         val visited = mutableSetOf<GridPoint>()
         val regions = mutableListOf<Set<GridPoint>>()

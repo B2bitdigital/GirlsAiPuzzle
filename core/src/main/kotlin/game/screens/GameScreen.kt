@@ -47,6 +47,14 @@ class GameScreen(
     private val colorPlayer    = Color(0f, 1f, 1f, 1f)
     private val colorLine      = Color(1f, 0.55f, 0f, 1f)
 
+    private var levelCompleteOverlay = false
+    private var overlayStars = 0
+    private var overlayScore = 0
+    private var overlayLevelId = 0
+    private var retryPressed = false
+    private var nextPressed = false
+    private var menuPressed = false
+
     override fun show() {
         val json = Gdx.files.internal("levels/level_%02d.json".format(levelId)).readString()
         val levelData = LevelLoader.fromJson(json)
@@ -61,11 +69,26 @@ class GameScreen(
 
         Gdx.input.inputProcessor = object : InputAdapter() {
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                if (levelCompleteOverlay) {
+                    val worldCoords = viewport.unproject(Vector3(screenX.toFloat(), screenY.toFloat(), 0f))
+                    val W = GameConstants.FIELD_WIDTH
+                    val panelW = W * 0.82f
+                    val panelX = (W - panelW) / 2f
+                    val btnW = panelW / 3f - 12f
+                    val btnY = (GameConstants.FIELD_HEIGHT - GameConstants.HUD_HEIGHT - 340f) / 2f + 52f
+                    val btnH = 38f
+                    val wx = worldCoords.x; val wy = worldCoords.y
+                    retryPressed = wx >= panelX + 10f && wx <= panelX + 10f + btnW && wy >= btnY && wy <= btnY + btnH
+                    nextPressed  = wx >= panelX + btnW + 16f && wx <= panelX + 2f * btnW + 16f && wy >= btnY && wy <= btnY + btnH
+                    menuPressed  = wx >= panelX + 2f * (btnW + 6f) + 10f && wx <= panelX + 3f * btnW + 22f && wy >= btnY && wy <= btnY + btnH
+                    return true
+                }
                 applyDirection(screenX, screenY)
                 return true
             }
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+                if (levelCompleteOverlay) return true
                 applyDirection(screenX, screenY)
                 return true
             }
@@ -100,13 +123,23 @@ class GameScreen(
         when (event) {
             WorldEvent.GameOver -> game.setScreen(GameOverScreen(game, levelId, world.score))
             WorldEvent.LevelComplete -> {
-                val stars = world.computeStars()
-                game.prefs.saveStars(levelId, stars)
-                game.prefs.saveHighScore(world.score)
-                game.prefs.incrementLevelsCompleted()
-                game.setScreen(LevelCompleteScreen(game, levelId, stars, world.score))
+                if (!levelCompleteOverlay) {
+                    overlayStars = world.computeStars()
+                    overlayScore = world.score
+                    overlayLevelId = levelId
+                    game.prefs.saveStars(levelId, overlayStars)
+                    game.prefs.saveHighScore(overlayScore)
+                    game.prefs.incrementLevelsCompleted()
+                    levelCompleteOverlay = true
+                    world.territory.revealAll()
+                }
             }
             else -> {}
+        }
+
+        if (levelCompleteOverlay) {
+            drawLevelCompleteOverlay()
+            handleOverlayNavigation()
         }
     }
 
@@ -375,6 +408,102 @@ class GameScreen(
         shapes.end()
 
         Gdx.gl.glDisable(GL20.GL_BLEND)
+    }
+
+    private fun drawLevelCompleteOverlay() {
+        val W = GameConstants.FIELD_WIDTH
+        val H = GameConstants.FIELD_HEIGHT
+        val hudH = GameConstants.HUD_HEIGHT
+
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        val panelW = W * 0.82f
+        val panelH = 340f
+        val panelX = (W - panelW) / 2f
+        val panelY = (H - hudH - panelH) / 2f
+
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.setColor(0f, 0f, 0.04f, 0.88f)
+        shapes.rect(panelX, panelY, panelW, panelH)
+        shapes.end()
+
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.setColor(0f, 0.85f, 0.85f, 1f)
+        shapes.rect(panelX, panelY, panelW, panelH)
+        shapes.end()
+
+        batch.begin()
+
+        // Title
+        font.data.setScale(2.4f)
+        font.color = Color(0f, 1f, 1f, 1f)
+        layout.setText(font, "LEVEL CLEAR!")
+        font.draw(batch, "LEVEL CLEAR!", (W - layout.width) / 2f, panelY + panelH - 24f)
+
+        // Stars
+        font.data.setScale(2.8f)
+        for (i in 1..3) {
+            val starColor = if (i <= overlayStars) Color(1f, 0.9f, 0f, 1f) else Color(0.3f, 0.3f, 0.3f, 1f)
+            font.color = starColor
+            layout.setText(font, "★")
+            val starX = W / 2f + (i - 2) * 60f - layout.width / 2f
+            font.draw(batch, "★", starX, panelY + panelH - 70f)
+        }
+
+        // Score
+        font.data.setScale(1.2f)
+        font.color = Color(0.8f, 0.8f, 0.6f, 1f)
+        val scoreLabel = "SCORE: $overlayScore"
+        layout.setText(font, scoreLabel)
+        font.draw(batch, scoreLabel, (W - layout.width) / 2f, panelY + panelH - 130f)
+
+        // Area cleared
+        font.data.setScale(1.2f)
+        font.color = Color(0.9f, 0.9f, 0f, 1f)
+        val pctLabel = "CLEARED: ${world.territory.conqueredPercent().toInt()}%"
+        layout.setText(font, pctLabel)
+        font.draw(batch, pctLabel, (W - layout.width) / 2f, panelY + panelH - 165f)
+
+        // Buttons
+        val btnW = panelW / 3f - 12f
+        val btnY = panelY + 52f
+        val btnH = 38f
+
+        font.data.setScale(1.1f)
+        font.color = Color(0f, 0.85f, 0.85f, 1f)
+        layout.setText(font, "RETRY")
+        font.draw(batch, "RETRY", panelX + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+
+        font.color = Color(1f, 0.9f, 0f, 1f)
+        layout.setText(font, "NEXT")
+        font.draw(batch, "NEXT", panelX + btnW + 16f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+
+        font.color = Color(0.7f, 0.7f, 0.7f, 1f)
+        layout.setText(font, "MENU")
+        font.draw(batch, "MENU", panelX + 2 * (btnW + 6f) + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+
+        font.data.setScale(1f)
+        batch.end()
+
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.setColor(0f, 0.85f, 0.85f, 1f)
+        shapes.rect(panelX + 10f, btnY, btnW, btnH)
+        shapes.setColor(1f, 0.9f, 0f, 1f)
+        shapes.rect(panelX + btnW + 16f, btnY, btnW, btnH)
+        shapes.setColor(0.5f, 0.5f, 0.5f, 1f)
+        shapes.rect(panelX + 2 * (btnW + 6f) + 10f, btnY, btnW, btnH)
+        shapes.end()
+
+        Gdx.gl.glDisable(GL20.GL_BLEND)
+    }
+
+    private fun handleOverlayNavigation() {
+        when {
+            retryPressed -> { retryPressed = false; game.setScreen(GameScreen(game, overlayLevelId)) }
+            nextPressed  -> { nextPressed = false; game.setScreen(GameScreen(game, (overlayLevelId + 1).coerceAtMost(50))) }
+            menuPressed  -> { menuPressed = false; game.setScreen(MenuScreen(game)) }
+        }
     }
 
     private fun createConqueredMask() = Unit
