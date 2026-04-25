@@ -43,7 +43,7 @@ class EcsWorld(
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
                 val startX = (idCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
-                val startY = GameConstants.FIELD_HEIGHT * 0.5f + idCounter * 30f
+                val startY = (GameConstants.PLAY_HEIGHT * 0.5f + idCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
                 enemies.add(EntityState(
                     entity = Entity.Enemy(idCounter, type, enemyCfg.speed),
                     position = PositionComponent(startX, startY),

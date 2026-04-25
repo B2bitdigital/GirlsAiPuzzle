@@ -1,6 +1,7 @@
 package game.android
 
 import android.os.Bundle
+import android.view.View
 import android.widget.FrameLayout
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
@@ -29,10 +30,17 @@ class AndroidLauncher : AndroidApplication() {
             useGyroscope = false
         }
 
-        val gameView = initializeForView(gameInstance, config)
+        // Creiamo esplicitamente la vista del gioco
+        val gameView: View = initializeForView(gameInstance, config)
+
+        // Creiamo il layout che ospiterà sia il gioco che i banner
         val layout = FrameLayout(this)
         layout.addView(gameView)
+
+        // Attacchiamo il banner al layout
         adManager.createBannerAndAttach(layout)
+
+        // Impostiamo il layout come contenuto dell'activity
         setContentView(layout)
     }
 

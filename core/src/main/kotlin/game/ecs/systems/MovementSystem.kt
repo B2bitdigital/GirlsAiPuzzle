@@ -5,7 +5,7 @@ import kotlin.math.abs
 class MovementSystem(
     private val cellSize: Float = game.GameConstants.CELL_SIZE,
     private val fieldWidth: Float = game.GameConstants.FIELD_WIDTH,
-    private val fieldHeight: Float = game.GameConstants.FIELD_HEIGHT
+    private val fieldHeight: Float = game.GameConstants.PLAY_HEIGHT   // was FIELD_HEIGHT
 ) {
     /**
      * Move player in direction (dirX, dirY) at given speed for one frame.

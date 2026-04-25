@@ -9,7 +9,7 @@ import kotlin.random.Random
 class EnemyAISystem(
     private val cellSize: Float = game.GameConstants.CELL_SIZE,
     private val fieldWidth: Float = game.GameConstants.FIELD_WIDTH,
-    private val fieldHeight: Float = game.GameConstants.FIELD_HEIGHT
+    private val fieldHeight: Float = game.GameConstants.PLAY_HEIGHT   // was FIELD_HEIGHT
 ) {
     /**
      * Update a single enemy's position. pos/dirX/dirY mutated in place.

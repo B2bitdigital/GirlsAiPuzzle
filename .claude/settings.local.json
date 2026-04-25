@@ -28,7 +28,28 @@
       "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\"; $env:PATH = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\\\\.worktrees\\\\implement\"; .\\\\gradlew.bat :core:test 2>&1 | Select-Object -Last 30)",
       "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\"; $env:PATH = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :core:test 2>&1 | Select-Object -Last 10)",
       "Bash(gh auth *)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "PowerShell($env:ANDROID_HOME; ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" 2>$null; ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\build-tools\\\\\" 2>$null | Select-Object -Last 3)",
+      "PowerShell(ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platforms\\\\\" 2>$null)",
+      "PowerShell(ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\cmdline-tools\\\\\" 2>$null | Select-Object Name)",
+      "PowerShell(ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\\" 2>$null | Select-Object Name)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\"; $env:PATH = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jre-17.0.13.11-hotspot\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 60)",
+      "PowerShell(ls \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\" 2>$null | Select-Object Name)",
+      "PowerShell(ls \"$env:LOCALAPPDATA\\\\Android\\\\\" 2>$null | Select-Object Name; ls \"C:\\\\Users\\\\soloi\\\\AppData\\\\Local\\\\Android\\\\\" 2>$null | Select-Object Name)",
+      "Bash(grep -E \"javac|java$\")",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 60)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 50)",
+      "Bash(/c/Users/soloi/AppData/Local/Android/Sdk/platform-tools/adb devices *)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 30)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\soloi\\\\Claude\\\\GirlsAiPuzzle\"; .\\\\gradlew.bat :android:assembleDebug 2>&1 | Select-Object -Last 10)",
+      "Bash(./gradlew :core:compileKotlin)",
+      "Bash(gradlew.bat :core:compileKotlin)",
+      "Bash(Get-Content \"C:\\\\Users\\\\soloi\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-soloi-Claude-GirlsAiPuzzle\\\\2e9ba069-8616-400d-bd9a-2286705614d3\\\\tasks\\\\bxeks1jpl.output\" -Wait)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(adb devices *)",
+      "PowerShell(python -c \"from PIL import Image; print\\('PIL ok'\\)\" 2>&1)"
     ]
   }
 }
