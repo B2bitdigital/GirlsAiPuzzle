@@ -19,6 +19,7 @@ import game.ecs.EcsWorld
 import game.ecs.EnemyType
 import game.ecs.Entity
 import game.ecs.WorldEvent
+import game.ecs.systems.CellType
 import game.ecs.systems.GridPoint
 import game.level.LevelLoader
 import kotlin.math.abs
@@ -170,7 +171,7 @@ class GameScreen(
     private fun drawBackground() {
         val tex = bgTexture ?: return
         batch.begin()
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
         val texW = tex.width.toFloat()
         val texH = tex.height.toFloat()
@@ -178,7 +179,7 @@ class GameScreen(
         val cellTexH = texH / GameConstants.GRID_ROWS
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (grid[c][r]) {
+                if (cells[c][r] == CellType.CONQUERED) {
                     val srcX = (c * cellTexW).toInt()
                     val srcY = (texH - (r + 1) * cellTexH).toInt()
                     val srcW = cellTexW.toInt().coerceAtLeast(1)
@@ -196,31 +197,32 @@ class GameScreen(
     private fun drawFreeOverlay() {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0f, 0f, 0.06f, 0.92f)
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (!grid[c][r]) shapes.rect(c * cs, r * cs, cs, cs)
+                // LINE cells are rendered by drawCurrentLine(); not covered by overlay
+                if (cells[c][r] == CellType.FREE) shapes.rect(c * cs, r * cs, cs, cs)
             }
         }
         shapes.end()
     }
 
     private fun drawTerritoryBorder() {
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0f, 0.8f, 0.8f, 0.5f)
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (!grid[c][r]) continue
-                if (c + 1 < GameConstants.GRID_COLS && !grid[c + 1][r])
+                if (cells[c][r] != CellType.CONQUERED) continue
+                if (c + 1 < GameConstants.GRID_COLS && cells[c + 1][r] != CellType.CONQUERED)
                     shapes.line((c + 1) * cs, r * cs, (c + 1) * cs, (r + 1) * cs)
-                if (c - 1 >= 0 && !grid[c - 1][r])
+                if (c - 1 >= 0 && cells[c - 1][r] != CellType.CONQUERED)
                     shapes.line(c * cs, r * cs, c * cs, (r + 1) * cs)
-                if (r + 1 < GameConstants.GRID_ROWS && !grid[c][r + 1])
+                if (r + 1 < GameConstants.GRID_ROWS && cells[c][r + 1] != CellType.CONQUERED)
                     shapes.line(c * cs, (r + 1) * cs, (c + 1) * cs, (r + 1) * cs)
-                if (r - 1 >= 0 && !grid[c][r - 1])
+                if (r - 1 >= 0 && cells[c][r - 1] != CellType.CONQUERED)
                     shapes.line(c * cs, r * cs, (c + 1) * cs, r * cs)
             }
         }

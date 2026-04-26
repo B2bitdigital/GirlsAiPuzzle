@@ -98,7 +98,7 @@ class EcsWorld(
         if (pc.moving) {
             val stillMoving = movement.movePlayer(
                 posArr, pc.dirX, pc.dirY, effectiveSpeed, delta,
-                territory.grid, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
+                territory.cells, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
             )
             pos.x = posArr[0]; pos.y = posArr[1]
             if (!stillMoving) pc.moving = false
@@ -107,8 +107,6 @@ class EcsWorld(
         // Detect territory transition
         val playerGrid = movement.toGridPoint(pos.x, pos.y)
         val onSafe = territory.isOnSafeZone(playerGrid)
-        val onPerimeter = territory.isOnPerimeter(playerGrid)
-        
         // Track last safe position for line start
         if (onSafe) {
             lastSafeGrid = playerGrid
@@ -194,7 +192,7 @@ class EcsWorld(
                 type = e.type, pos = ePosArr, dirX = eDirX, dirY = eDirY,
                 speed = ec.speed * speedMult,
                 freezeTimer = ec.freezeTimer, delta = delta,
-                grid = territory.grid, playerX = pos.x, playerY = pos.y
+                cells = territory.cells, playerX = pos.x, playerY = pos.y
             )
             ePos.x = ePosArr[0]; ePos.y = ePosArr[1]
             ec.dirX = eDirX[0]; ec.dirY = eDirY[0]
@@ -203,7 +201,7 @@ class EcsWorld(
 
             // Spider/Wasp: hit player directly SOLO se NON su perimetro
             if (e.type == EnemyType.SPIDER || e.type == EnemyType.WASP) {
-                if (!shielded && !territory.isOnPerimeter(playerGrid) && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
+                if (!shielded && territory.isDrawing && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
                     return loseLife()
                 }
             }
@@ -220,7 +218,7 @@ class EcsWorld(
         if (timeRemaining <= 0f) return loseLife()
 
         val timerRef = floatArrayOf(timeRemaining)
-        val spawnResult = powerupSys.update(delta, levelData.powerupTypes(), territory.grid)
+        val spawnResult = powerupSys.update(delta, levelData.powerupTypes(), territory.cells)
         if (spawnResult != null) {
             activePowerups.add(EntityState(
                 entity = Entity.Powerup(idCounter++, spawnResult.type),
