@@ -6,7 +6,9 @@ import kotlin.random.Random
 
 class EnemyAISystem(
     private val cellSize: Float = game.GameConstants.CELL_SIZE,
-    private val fieldWidth: Float = game.GameConstants.FIELD_WIDTH,
+    private val offsetX: Float = game.GameConstants.FIELD_OFFSET_X,
+    private val offsetY: Float = game.GameConstants.FIELD_OFFSET_Y,
+    private val fieldWidth: Float = game.GameConstants.PLAY_WIDTH,
     private val fieldHeight: Float = game.GameConstants.PLAY_HEIGHT
 ) {
     fun updateEnemy(
@@ -30,8 +32,9 @@ class EnemyAISystem(
             EnemyType.SNAIL     -> moveBouncer(pos, dirX, dirY, speed * 0.3f, delta, cells, randomTurn = false)
         }
 
-        pos[0] = pos[0].coerceIn(0f, fieldWidth - 1f)
-        pos[1] = pos[1].coerceIn(0f, fieldHeight - 1f)
+        // clamp to field bounds in screen space
+        pos[0] = pos[0].coerceIn(offsetX, offsetX + fieldWidth - 1f)
+        pos[1] = pos[1].coerceIn(offsetY, offsetY + fieldHeight - 1f)
     }
 
     private fun moveSpider(
@@ -41,8 +44,8 @@ class EnemyAISystem(
         val nx = pos[0] + dirX[0] * speed * delta
         val ny = pos[1] + dirY[0] * speed * delta
 
-        val hitX = nx <= 0f || nx >= fieldWidth - 1f || isConquered(nx, pos[1], cells)
-        val hitY = ny <= 0f || ny >= fieldHeight - 1f || isConquered(pos[0], ny, cells)
+        val hitX = nx <= offsetX || nx >= offsetX + fieldWidth - 1f || isConquered(nx, pos[1], cells)
+        val hitY = ny <= offsetY || ny >= offsetY + fieldHeight - 1f || isConquered(pos[0], ny, cells)
 
         if (hitX) {
             dirX[0] = -dirX[0]
@@ -66,8 +69,8 @@ class EnemyAISystem(
         val nx = pos[0] + dirX[0] * speed * delta
         val ny = pos[1] + dirY[0] * speed * delta
 
-        val hitX = nx <= cellSize || nx >= fieldWidth - cellSize || isConquered(nx, pos[1], cells)
-        val hitY = ny <= cellSize || ny >= fieldHeight - cellSize || isConquered(pos[0], ny, cells)
+        val hitX = nx <= offsetX + cellSize || nx >= offsetX + fieldWidth - cellSize || isConquered(nx, pos[1], cells)
+        val hitY = ny <= offsetY + cellSize || ny >= offsetY + fieldHeight - cellSize || isConquered(pos[0], ny, cells)
 
         if (hitX) dirX[0] = -dirX[0] else pos[0] = nx
         if (hitY) dirY[0] = -dirY[0] else pos[1] = ny
@@ -91,13 +94,13 @@ class EnemyAISystem(
         val nx = pos[0] + (dx / len) * speed * delta
         val ny = pos[1] + (dy / len) * speed * delta
 
-        if (!isConquered(nx, pos[1], cells) && nx > 0f && nx < fieldWidth - 1f) {
+        if (!isConquered(nx, pos[1], cells) && nx > offsetX && nx < offsetX + fieldWidth - 1f) {
             pos[0] = nx
             dirX[0] = dx / len
         } else {
             dirX[0] = -(dx / len)
         }
-        if (!isConquered(pos[0], ny, cells) && ny > 0f && ny < fieldHeight - 1f) {
+        if (!isConquered(pos[0], ny, cells) && ny > offsetY && ny < offsetY + fieldHeight - 1f) {
             pos[1] = ny
             dirY[0] = dy / len
         } else {
@@ -108,8 +111,8 @@ class EnemyAISystem(
     // Enemies bounce off CONQUERED cells. LINE cells are traversable (hitting LINE
     // is a game-over event handled by CollisionSystem, not a movement boundary).
     private fun isConquered(x: Float, y: Float, cells: Array<Array<CellType>>): Boolean {
-        val col = (x / cellSize).toInt().coerceIn(0, cells.size - 1)
-        val row = (y / cellSize).toInt().coerceIn(0, cells[0].size - 1)
+        val col = ((x - offsetX) / cellSize).toInt().coerceIn(0, cells.size - 1)
+        val row = ((y - offsetY) / cellSize).toInt().coerceIn(0, cells[0].size - 1)
         return cells[col][row] == CellType.CONQUERED
     }
 }

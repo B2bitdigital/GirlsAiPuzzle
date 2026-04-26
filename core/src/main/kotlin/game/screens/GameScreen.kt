@@ -173,6 +173,8 @@ class GameScreen(
         batch.begin()
         val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         val texW = tex.width.toFloat()
         val texH = tex.height.toFloat()
         val cellTexW = texW / GameConstants.GRID_COLS
@@ -185,7 +187,7 @@ class GameScreen(
                     val srcW = cellTexW.toInt().coerceAtLeast(1)
                     val srcH = cellTexH.toInt().coerceAtLeast(1)
                     batch.draw(tex,
-                        c * cs, r * cs, cs, cs,
+                        ox + c * cs, oy + r * cs, cs, cs,
                         srcX, srcY, srcW, srcH,
                         false, false)
                 }
@@ -199,10 +201,12 @@ class GameScreen(
         shapes.setColor(0f, 0f, 0.06f, 0.92f)
         val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
                 // LINE cells are rendered by drawCurrentLine(); not covered by overlay
-                if (cells[c][r] == CellType.FREE) shapes.rect(c * cs, r * cs, cs, cs)
+                if (cells[c][r] == CellType.FREE) shapes.rect(ox + c * cs, oy + r * cs, cs, cs)
             }
         }
         shapes.end()
@@ -211,19 +215,21 @@ class GameScreen(
     private fun drawTerritoryBorder() {
         val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0f, 0.8f, 0.8f, 0.5f)
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
                 if (cells[c][r] != CellType.CONQUERED) continue
                 if (c + 1 < GameConstants.GRID_COLS && cells[c + 1][r] != CellType.CONQUERED)
-                    shapes.line((c + 1) * cs, r * cs, (c + 1) * cs, (r + 1) * cs)
+                    shapes.line(ox + (c + 1) * cs, oy + r * cs, ox + (c + 1) * cs, oy + (r + 1) * cs)
                 if (c - 1 >= 0 && cells[c - 1][r] != CellType.CONQUERED)
-                    shapes.line(c * cs, r * cs, c * cs, (r + 1) * cs)
+                    shapes.line(ox + c * cs, oy + r * cs, ox + c * cs, oy + (r + 1) * cs)
                 if (r + 1 < GameConstants.GRID_ROWS && cells[c][r + 1] != CellType.CONQUERED)
-                    shapes.line(c * cs, (r + 1) * cs, (c + 1) * cs, (r + 1) * cs)
+                    shapes.line(ox + c * cs, oy + (r + 1) * cs, ox + (c + 1) * cs, oy + (r + 1) * cs)
                 if (r - 1 >= 0 && cells[c][r - 1] != CellType.CONQUERED)
-                    shapes.line(c * cs, r * cs, (c + 1) * cs, r * cs)
+                    shapes.line(ox + c * cs, oy + r * cs, ox + (c + 1) * cs, oy + r * cs)
             }
         }
         shapes.end()
@@ -233,25 +239,25 @@ class GameScreen(
         if (world.territory.currentLine.isEmpty()) return
         val pulse = (System.currentTimeMillis() % 600) / 600f
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
 
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        // Glow layer
         shapes.setColor(colorLine.r, colorLine.g, colorLine.b, 0.18f)
         for (pt in world.territory.currentLine) {
-            shapes.rect(pt.col * cs - cs * 0.5f, pt.row * cs - cs * 0.5f, cs * 2f, cs * 2f)
+            shapes.rect(ox + pt.col * cs - cs * 0.5f, oy + pt.row * cs - cs * 0.5f, cs * 2f, cs * 2f)
         }
-        // Core
         val bright = 0.7f + pulse * 0.3f
         shapes.setColor(colorLine.r, colorLine.g * bright, 0f, 1f)
         for (pt in world.territory.currentLine) {
-            shapes.rect(pt.col * cs, pt.row * cs, cs, cs)
+            shapes.rect(ox + pt.col * cs, oy + pt.row * cs, cs, cs)
         }
         shapes.end()
     }
 
     private fun drawEnemies() {
         val tex = enemyTexture
-        val offsetX = 0f
+        val offsetX = 0f  // positions already in screen space
         val offsetY = 0f
         if (tex != null) {
             batch.begin()
