@@ -57,10 +57,9 @@ class EcsWorldTerritoryTest {
         for (r in 1 until 9) world.territory.extendLine(GridPoint(3, r))
         world.territory.extendLine(GridPoint(3, 9))
 
-        val dangerousPositions = world.enemies
-            .filter { (it.entity as? Entity.Enemy)?.type != EnemyType.SNAIL }
-            .map { world.movement.toGridPoint(it.position.x, it.position.y) }
-        val result = world.territory.closeLine(dangerousPositions, emptyList())
+        // Pass emptyList() to closeLine so the algorithm freely picks the smaller (left) region,
+        // allowing the enemy at col=1 to be trapped in the conquered area — triggering respawn logic.
+        val result = world.territory.closeLine(emptyList(), emptyList())
 
         assertTrue(result is CloseResult.Success)
         val success = result as CloseResult.Success
@@ -85,7 +84,7 @@ class EcsWorldTerritoryTest {
         assertTrue("score increased for trapped enemy", world.score >= 1000)
         val respawned = world.enemies[0]
         val gp = world.movement.toGridPoint(respawned.position.x, respawned.position.y)
-        assertFalse("respawned enemy not in conquered cell", world.territory.grid[gp.col][gp.row])
+        assertEquals("respawned enemy not in conquered cell", CellType.FREE, world.territory.cells[gp.col][gp.row])
     }
 
     @Test
