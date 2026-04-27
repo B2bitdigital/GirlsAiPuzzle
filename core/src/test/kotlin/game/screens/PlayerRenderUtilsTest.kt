@@ -59,4 +59,22 @@ class PlayerRenderUtilsTest {
         val (rx, _) = playerRenderPos(479.9f, 50f)
         assertEquals(FW, rx, 0f)
     }
+
+    @Test
+    fun `x at exactly 0 y at exactly 0 snaps y to 0`() {
+        val (_, ry) = playerRenderPos(50f, 0f)
+        assertEquals(0f, ry, 0f)
+    }
+
+    @Test
+    fun `x at first pixel of col 1 does not snap`() {
+        val (rx, _) = playerRenderPos(10f, 50f)   // col 1, first interior col
+        assertEquals(10f, rx, 0f)
+    }
+
+    @Test
+    fun `x at first pixel of col 47 snaps to FIELD_WIDTH`() {
+        val (rx, _) = playerRenderPos(470f, 50f)   // col 47, right perimeter
+        assertEquals(GameConstants.FIELD_WIDTH, rx, 0f)
+    }
 }
