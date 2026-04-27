@@ -8,6 +8,7 @@ object GameConstants {
     const val GRID_COLS = 48
     const val GRID_ROWS = 74            // PLAY_HEIGHT / CELL_SIZE = 740 / 10
     const val CELL_SIZE = 10f
+    const val PLAYER_DIAMOND_HALF = CELL_SIZE          // half-span of player diamond in pixels
     const val PLAYER_SPEED = 150f
     const val LIVES_PER_LEVEL = 3
     const val POWERUP_SPAWN_INTERVAL = 15f
