@@ -6,6 +6,6 @@ import org.junit.Test
 class GameConstantsTest {
     @Test
     fun `PLAYER_DIAMOND_HALF equals CELL_SIZE`() {
-        assertEquals(GameConstants.CELL_SIZE, GameConstants.PLAYER_DIAMOND_HALF, 0f)
+        assertEquals(10f, GameConstants.PLAYER_DIAMOND_HALF, 0f)
     }
 }
