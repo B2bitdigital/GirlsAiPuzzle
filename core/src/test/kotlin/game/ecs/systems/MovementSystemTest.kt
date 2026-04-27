@@ -6,7 +6,7 @@ import org.junit.Test
 class MovementSystemTest {
 
     // 10×10 field, cellSize=10 → 100×100 pixels
-    private val ms = MovementSystem(cellSize = 10f, fieldWidth = 100f, fieldHeight = 100f)
+    private val ms = MovementSystem(cellSize = 10f, playWidth = 100f, playHeight = 100f)
 
     private fun emptyCells(cols: Int = 10, rows: Int = 10): Array<Array<CellType>> =
         Array(cols) { Array(rows) { CellType.FREE } }
