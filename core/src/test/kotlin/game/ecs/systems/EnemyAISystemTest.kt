@@ -14,7 +14,7 @@ class EnemyAISystemTest {
         return g
     }
 
-    private val ai = EnemyAISystem(cellSize = 10f, fieldWidth = 100f, fieldHeight = 100f)
+    private val ai = EnemyAISystem(cellSize = 10f, offsetX = 0f, offsetY = 0f, fieldWidth = 100f, fieldHeight = 100f)
 
     @Test
     fun `frozen enemy does not move`() {

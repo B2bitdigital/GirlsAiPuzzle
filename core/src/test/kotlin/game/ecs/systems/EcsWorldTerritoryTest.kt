@@ -49,8 +49,8 @@ class EcsWorldTerritoryTest {
         assertEquals(1, initialCount)
 
         // Place enemy at interior cell (1,5) — inside the left region we'll conquer
-        world.enemies[0].position.x = 1 * GameConstants.CELL_SIZE
-        world.enemies[0].position.y = 5 * GameConstants.CELL_SIZE
+        world.enemies[0].position.x = GameConstants.FIELD_OFFSET_X + 1 * GameConstants.CELL_SIZE
+        world.enemies[0].position.y = GameConstants.FIELD_OFFSET_Y + 5 * GameConstants.CELL_SIZE
 
         // Draw line from (3,0) to (3,9) — divides grid: left (cols 1-2) vs right (cols 4-8)
         world.territory.startLine(GridPoint(3, 0))
@@ -74,8 +74,8 @@ class EcsWorldTerritoryTest {
             world.score += 1000
             val freeCell = world.territory.randomFreeCell()
             if (freeCell != null) {
-                eState.position.x = freeCell.col * GameConstants.CELL_SIZE
-                eState.position.y = freeCell.row * GameConstants.CELL_SIZE
+                eState.position.x = GameConstants.FIELD_OFFSET_X + freeCell.col * GameConstants.CELL_SIZE
+                eState.position.y = GameConstants.FIELD_OFFSET_Y + freeCell.row * GameConstants.CELL_SIZE
                 world.enemies.add(eState)
             }
         }
