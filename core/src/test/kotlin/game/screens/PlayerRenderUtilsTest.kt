@@ -1,6 +1,7 @@
 package game.screens
 
 import game.GameConstants
+import game.ecs.systems.GridPoint
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -88,5 +89,53 @@ class PlayerRenderUtilsTest {
         // posX=451f → col=(451-20)/10=43.1→43 → snap to 450f (not 451f)
         val (rx, _) = playerRenderPos(451f, 100f)
         assertEquals(450f, rx, 0f)
+    }
+
+    // gridPointRenderPos tests
+    // Interior cell centre = ox + col*cs + cs/2f, oy + row*cs + cs/2f
+
+    @Test
+    fun `gridPoint interior returns cell centre`() {
+        val (x, y) = gridPointRenderPos(GridPoint(5, 5))
+        assertEquals(75f, x, 0f)   // 20 + 5*10 + 5 = 75
+        assertEquals(75f, y, 0f)
+    }
+
+    @Test
+    fun `gridPoint left perimeter snaps x to ox+cs`() {
+        val (x, _) = gridPointRenderPos(GridPoint(0, 5))
+        assertEquals(30f, x, 0f)
+    }
+
+    @Test
+    fun `gridPoint right perimeter snaps x to ox+(GRID_COLS-1)*cs`() {
+        val (x, _) = gridPointRenderPos(GridPoint(43, 5))
+        assertEquals(450f, x, 0f)
+    }
+
+    @Test
+    fun `gridPoint bottom perimeter snaps y to oy+cs`() {
+        val (_, y) = gridPointRenderPos(GridPoint(5, 0))
+        assertEquals(30f, y, 0f)
+    }
+
+    @Test
+    fun `gridPoint top perimeter snaps y to oy+(GRID_ROWS-1)*cs`() {
+        val (_, y) = gridPointRenderPos(GridPoint(5, 65))
+        assertEquals(670f, y, 0f)
+    }
+
+    @Test
+    fun `gridPoint corner snaps both axes`() {
+        val (x, y) = gridPointRenderPos(GridPoint(0, 0))
+        assertEquals(30f, x, 0f)
+        assertEquals(30f, y, 0f)
+    }
+
+    @Test
+    fun `gridPoint first interior cell returns centre`() {
+        val (x, y) = gridPointRenderPos(GridPoint(1, 1))
+        assertEquals(35f, x, 0f)   // 20 + 1*10 + 5 = 35
+        assertEquals(35f, y, 0f)
     }
 }

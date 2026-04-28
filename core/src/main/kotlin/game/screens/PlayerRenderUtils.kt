@@ -1,6 +1,7 @@
 package game.screens
 
 import game.GameConstants
+import game.ecs.systems.GridPoint
 
 data class RenderPos(val x: Float, val y: Float)
 
@@ -29,4 +30,26 @@ fun playerRenderPos(posX: Float, posY: Float): RenderPos {
         else                        -> posY
     }
     return RenderPos(rx, ry)
+}
+
+/**
+ * Returns the render position for a trail GridPoint.
+ * Perimeter cells snap to the inner boundary (same targets as playerRenderPos).
+ * Interior cells return the cell centre in screen space.
+ */
+fun gridPointRenderPos(pt: GridPoint): RenderPos {
+    val ox = GameConstants.FIELD_OFFSET_X
+    val oy = GameConstants.FIELD_OFFSET_Y
+    val cs = GameConstants.CELL_SIZE
+    val x = when (pt.col) {
+        0                           -> ox + cs
+        GameConstants.GRID_COLS - 1 -> ox + (GameConstants.GRID_COLS - 1) * cs
+        else                        -> ox + pt.col * cs + cs / 2f
+    }
+    val y = when (pt.row) {
+        0                           -> oy + cs
+        GameConstants.GRID_ROWS - 1 -> oy + (GameConstants.GRID_ROWS - 1) * cs
+        else                        -> oy + pt.row * cs + cs / 2f
+    }
+    return RenderPos(x, y)
 }
