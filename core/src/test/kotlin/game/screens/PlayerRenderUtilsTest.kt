@@ -103,25 +103,29 @@ class PlayerRenderUtilsTest {
 
     @Test
     fun `gridPoint left perimeter snaps x to ox+cs`() {
-        val (x, _) = gridPointRenderPos(GridPoint(0, 5))
+        val (x, y) = gridPointRenderPos(GridPoint(0, 5))
         assertEquals(30f, x, 0f)
+        assertEquals(75f, y, 0f)   // interior row 5: 20 + 5*10 + 5 = 75f
     }
 
     @Test
     fun `gridPoint right perimeter snaps x to ox+(GRID_COLS-1)*cs`() {
-        val (x, _) = gridPointRenderPos(GridPoint(43, 5))
+        val (x, y) = gridPointRenderPos(GridPoint(43, 5))
         assertEquals(450f, x, 0f)
+        assertEquals(75f, y, 0f)   // interior row 5: 20 + 5*10 + 5 = 75f
     }
 
     @Test
     fun `gridPoint bottom perimeter snaps y to oy+cs`() {
-        val (_, y) = gridPointRenderPos(GridPoint(5, 0))
+        val (x, y) = gridPointRenderPos(GridPoint(5, 0))
+        assertEquals(75f, x, 0f)   // interior col 5: 20 + 5*10 + 5 = 75f
         assertEquals(30f, y, 0f)
     }
 
     @Test
     fun `gridPoint top perimeter snaps y to oy+(GRID_ROWS-1)*cs`() {
-        val (_, y) = gridPointRenderPos(GridPoint(5, 65))
+        val (x, y) = gridPointRenderPos(GridPoint(5, 65))
+        assertEquals(75f, x, 0f)   // interior col 5: 20 + 5*10 + 5 = 75f
         assertEquals(670f, y, 0f)
     }
 
