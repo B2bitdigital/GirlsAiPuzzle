@@ -47,7 +47,6 @@ class GameScreen(
     private val colorWasp      = Color(1f, 0.9f, 0f, 1f)
     private val colorSnail     = Color(0.2f, 1f, 0.4f, 1f)
     private val colorPlayer    = Color(0f, 1f, 1f, 1f)
-    private val colorLine      = Color(1f, 0.55f, 0f, 1f)
 
     private var levelCompleteOverlay = false
     private var overlayStars = 0
@@ -236,21 +235,14 @@ class GameScreen(
     }
 
     private fun drawCurrentLine() {
-        if (world.territory.currentLine.isEmpty()) return
-        val pulse = (System.currentTimeMillis() % 600) / 600f
-        val cs = GameConstants.CELL_SIZE
-        val ox = GameConstants.FIELD_OFFSET_X
-        val oy = GameConstants.FIELD_OFFSET_Y
-
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.setColor(colorLine.r, colorLine.g, colorLine.b, 0.18f)
-        for (pt in world.territory.currentLine) {
-            shapes.rect(ox + pt.col * cs - cs * 0.5f, oy + pt.row * cs - cs * 0.5f, cs * 2f, cs * 2f)
-        }
-        val bright = 0.7f + pulse * 0.3f
-        shapes.setColor(colorLine.r, colorLine.g * bright, 0f, 1f)
-        for (pt in world.territory.currentLine) {
-            shapes.rect(ox + pt.col * cs, oy + pt.row * cs, cs, cs)
+        val line = world.territory.currentLine
+        if (line.size < 2) return
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.setColor(0f, 0.8f, 0.8f, 0.5f)
+        for (i in 0 until line.size - 1) {
+            val (x1, y1) = gridPointRenderPos(line[i])
+            val (x2, y2) = gridPointRenderPos(line[i + 1])
+            shapes.line(x1, y1, x2, y2)
         }
         shapes.end()
     }
