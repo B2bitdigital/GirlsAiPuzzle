@@ -204,7 +204,7 @@ class GameScreen(
         val oy = GameConstants.FIELD_OFFSET_Y
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                // LINE cells are rendered by drawCurrentLine(); not covered by overlay
+                // LINE cells are left uncovered so the cyan trail polyline is visible over them
                 if (cells[c][r] == CellType.FREE) shapes.rect(ox + c * cs, oy + r * cs, cs, cs)
             }
         }
