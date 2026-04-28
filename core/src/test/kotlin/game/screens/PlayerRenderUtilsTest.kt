@@ -85,8 +85,8 @@ class PlayerRenderUtilsTest {
 
     @Test
     fun `posX exactly at right snap value is right border`() {
-        // posX=450f → col=(450-20)/10=43 → snap
-        val (rx, _) = playerRenderPos(450f, 100f)
+        // posX=451f → col=(451-20)/10=43.1→43 → snap to 450f (not 451f)
+        val (rx, _) = playerRenderPos(451f, 100f)
         assertEquals(450f, rx, 0f)
     }
 }
