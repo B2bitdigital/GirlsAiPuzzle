@@ -344,9 +344,6 @@ class GameScreen(
         val explosions = world.explosionSys.active
         if (explosions.isEmpty()) return
 
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-
         // Flash phase: filled white circle, progress 0..0.25
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         for (exp in explosions) {

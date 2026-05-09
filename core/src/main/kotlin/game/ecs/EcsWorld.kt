@@ -267,6 +267,7 @@ class EcsWorld(
                 timeRemaining = timerRef[0]
                 toRemove.add(pwState)
                 score += 200
+                // Walk-over collect: no explosion — visual feedback reserved for territory-capture trapping
             }
         }
         activePowerups.removeAll(toRemove)
