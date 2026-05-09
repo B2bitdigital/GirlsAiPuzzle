@@ -6,8 +6,11 @@ import org.junit.Test
 
 class PowerupSystemTest {
 
+    // offsetX=0, offsetY=0 keeps spawn coords in a simple [margin, 100-margin] range for assertions
     private val ps = PowerupSystem(
-        fieldWidth = 100f, fieldHeight = 100f, cellSize = 10f,
+        offsetX = 0f, offsetY = 0f,
+        playWidth = 100f, playHeight = 100f,
+        cellSize = 10f,
         spawnInterval = 5f, lifetime = 8f
     )
 
@@ -25,10 +28,10 @@ class PowerupSystemTest {
     }
 
     @Test
-    fun `powerup position is within field`() {
+    fun `powerup position is within play field`() {
         val spawned = ps.update(delta = 6f, availableTypes = listOf(PowerupType.SPEED))!!
-        assertTrue(spawned.x in 10f..90f)
-        assertTrue(spawned.y in 10f..90f)
+        assertTrue("x in play area", spawned.x in 10f..90f)
+        assertTrue("y in play area", spawned.y in 10f..90f)
     }
 
     @Test
@@ -43,5 +46,12 @@ class PowerupSystemTest {
         ps.update(delta = 6f, availableTypes = listOf(PowerupType.TIME))
         val spawned2 = ps.update(delta = 1f, availableTypes = listOf(PowerupType.TIME))
         assertNull(spawned2)
+    }
+
+    @Test
+    fun `powerup does not spawn when all cells are CONQUERED`() {
+        val cells = Array(10) { Array(10) { CellType.CONQUERED } }
+        val spawned = ps.update(delta = 6f, availableTypes = listOf(PowerupType.TIME), cells = cells)
+        assertNull("should not spawn in fully-conquered field", spawned)
     }
 }

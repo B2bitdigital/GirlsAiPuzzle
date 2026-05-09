@@ -8,8 +8,10 @@ import kotlin.random.Random
 data class SpawnedPowerup(val type: PowerupType, val x: Float, val y: Float)
 
 class PowerupSystem(
-    private val fieldWidth: Float = game.GameConstants.FIELD_WIDTH,
-    private val fieldHeight: Float = game.GameConstants.PLAY_HEIGHT,
+    private val offsetX: Float = game.GameConstants.FIELD_OFFSET_X,
+    private val offsetY: Float = game.GameConstants.FIELD_OFFSET_Y,
+    private val playWidth: Float = game.GameConstants.PLAY_WIDTH,
+    private val playHeight: Float = game.GameConstants.PLAY_HEIGHT,
     private val cellSize: Float = game.GameConstants.CELL_SIZE,
     private val spawnInterval: Float = game.GameConstants.POWERUP_SPAWN_INTERVAL,
     private val lifetime: Float = game.GameConstants.POWERUP_LIFETIME
@@ -26,8 +28,8 @@ class PowerupSystem(
         val type = availableTypes.random()
         val margin = cellSize * 2
         repeat(20) {
-            val x = Random.nextFloat() * (fieldWidth - margin * 2) + margin
-            val y = Random.nextFloat() * (fieldHeight - margin * 2) + margin
+            val x = offsetX + Random.nextFloat() * (playWidth - margin * 2) + margin
+            val y = offsetY + Random.nextFloat() * (playHeight - margin * 2) + margin
             if (cells == null || !isConquered(x, y, cells)) {
                 return SpawnedPowerup(type, x, y)
             }
@@ -57,10 +59,10 @@ class PowerupSystem(
         return (spawnInterval - reduction).coerceAtLeast(5f)
     }
 
-    // Powerups spawn only in FREE cells — not in CONQUERED territory or on the player's line.
+    // FREE-cell check uses (x - offsetX) to align with grid coordinates.
     private fun isConquered(x: Float, y: Float, cells: Array<Array<CellType>>): Boolean {
-        val col = (x / cellSize).toInt().coerceIn(0, cells.size - 1)
-        val row = (y / cellSize).toInt().coerceIn(0, cells[0].size - 1)
+        val col = ((x - offsetX) / cellSize).toInt().coerceIn(0, cells.size - 1)
+        val row = ((y - offsetY) / cellSize).toInt().coerceIn(0, cells[0].size - 1)
         return cells[col][row] != CellType.FREE
     }
 }

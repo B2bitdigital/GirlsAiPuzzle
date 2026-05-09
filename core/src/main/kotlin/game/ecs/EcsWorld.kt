@@ -57,8 +57,10 @@ class EcsWorld(
         for (enemyCfg in levelData.enemies) {
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
-                val startX = ox + (initIdCounter * 80f) % (GameConstants.PLAY_WIDTH - 20f) + 10f
-                val startY = oy + (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
+                val freeCell = territory.randomFreeCell()
+                    ?: GridPoint(territory.cols / 2, territory.rows / 2)
+                val startX = ox + freeCell.col * GameConstants.CELL_SIZE
+                val startY = oy + freeCell.row * GameConstants.CELL_SIZE
                 enemies.add(EntityState(
                     entity = Entity.Enemy(initIdCounter, type, enemyCfg.speed),
                     position = PositionComponent(startX, startY),
@@ -172,9 +174,12 @@ class EcsWorld(
         val speedMult = difficultySys.speedMultiplier()
         val newEnemy = difficultySys.update(delta, enemies.size)
         if (newEnemy != null) {
+            val freeCell = territory.randomFreeCell()
+            val spawnX = if (freeCell != null) GameConstants.FIELD_OFFSET_X + freeCell.col * GameConstants.CELL_SIZE else newEnemy.x
+            val spawnY = if (freeCell != null) GameConstants.FIELD_OFFSET_Y + freeCell.row * GameConstants.CELL_SIZE else newEnemy.y
             enemies.add(EntityState(
                 entity = Entity.Enemy(idCounter++, newEnemy.type, newEnemy.speed),
-                position = PositionComponent(newEnemy.x, newEnemy.y),
+                position = PositionComponent(spawnX, spawnY),
                 velocity = VelocityComponent(),
                 enemyComp = EnemyComponent(
                     speed = newEnemy.speed,
