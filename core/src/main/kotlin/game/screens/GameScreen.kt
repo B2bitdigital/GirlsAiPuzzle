@@ -23,6 +23,7 @@ import game.ecs.systems.GridPoint
 import game.level.LevelLoader
 import kotlin.math.abs
 import kotlin.math.sign
+import kotlin.math.sin
 
 class GameScreen(
     private val game: GirlsPanicGame,
@@ -55,6 +56,18 @@ class GameScreen(
     private var menuPressed = false
 
     private val OVERLAY_PANEL_H = 340f
+
+    // Celebration reveal phase
+    private var celebrationTime = 0f
+    private val REVEAL_DURATION = 5f
+    private var sparkAccum = 0f
+    private data class Spark(var x: Float, var y: Float, var vx: Float, var vy: Float,
+                              val r: Float, val g: Float, val b: Float, var life: Float)
+    private val sparks = mutableListOf<Spark>()
+    private val sparkColors = listOf(
+        Triple(1f, 0.9f, 0f), Triple(0f, 1f, 1f), Triple(1f, 0.25f, 0.55f),
+        Triple(0.3f, 1f, 0.3f), Triple(1f, 1f, 1f), Triple(1f, 0.5f, 0.1f)
+    )
 
     override fun show() {
         val json = Gdx.files.internal("levels/level_%02d.json".format(levelId)).readString()
@@ -102,13 +115,24 @@ class GameScreen(
     }
 
     override fun render(delta: Float) {
+        camera.update()
+        batch.projectionMatrix = camera.combined
+        shapes.projectionMatrix = camera.combined
+
+        // Celebration reveal: 5s full-image zoom before stats overlay appears
+        if (levelCompleteOverlay && celebrationTime < REVEAL_DURATION) {
+            celebrationTime += delta
+            spawnSparks(delta)
+            updateSparks(delta)
+            drawCelebrationPhase()
+            if (Gdx.input.justTouched()) celebrationTime = REVEAL_DURATION
+            return
+        }
+
         val event = world.update(delta)
 
         Gdx.gl.glClearColor(0f, 0f, 0.06f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-        camera.update()
-        batch.projectionMatrix = camera.combined
-        shapes.projectionMatrix = camera.combined
 
         drawBackground()
 
@@ -139,6 +163,7 @@ class GameScreen(
                     game.prefs.incrementLevelsCompleted()
                     levelCompleteOverlay = true
                     world.territory.revealAll()
+                    initCelebration()
                 }
             }
             else -> {}
@@ -505,15 +530,6 @@ class GameScreen(
         layout.setText(Fonts.xl, "LEVEL CLEAR!")
         Fonts.xl.draw(batch, "LEVEL CLEAR!", (W - layout.width) / 2f, panelY + panelH - 24f)
 
-        // Stars
-        for (i in 1..3) {
-            val starColor = if (i <= overlayStars) Color(1f, 0.9f, 0f, 1f) else Color(0.3f, 0.3f, 0.3f, 1f)
-            Fonts.xl.color = starColor
-            layout.setText(Fonts.xl, "★")
-            val starX = W / 2f + (i - 2) * 60f - layout.width / 2f
-            Fonts.xl.draw(batch, "★", starX, panelY + panelH - 70f)
-        }
-
         // Score
         Fonts.sm.color = Color(0.8f, 0.8f, 0.6f, 1f)
         val scoreLabel = "SCORE: $overlayScore"
@@ -545,6 +561,22 @@ class GameScreen(
 
         batch.end()
 
+        // Stars (★ glyph absent in Orbitron — draw as polygon)
+        val starCY = panelY + panelH - 62f
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        for (i in 1..3) {
+            val sx = W / 2f + (i - 2) * 60f
+            if (i <= overlayStars) {
+                shapes.setColor(1f, 0.9f, 0f, 0.18f)
+                shapes.circle(sx, starCY, 26f, 20)
+                shapes.setColor(1f, 0.9f, 0f, 1f)
+            } else {
+                shapes.setColor(0.3f, 0.3f, 0.3f, 1f)
+            }
+            drawStar(sx, starCY, 16f, 6.5f)
+        }
+        shapes.end()
+
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0f, 0.85f, 0.85f, 1f)
         shapes.rect(panelX + 10f, btnY, btnW, btnH)
@@ -562,6 +594,126 @@ class GameScreen(
             retryPressed -> { retryPressed = false; game.setScreen(GameScreen(game, overlayLevelId)) }
             nextPressed  -> { nextPressed = false; game.setScreen(GameScreen(game, (overlayLevelId + 1).coerceAtMost(50))) }
             menuPressed  -> { menuPressed = false; game.setScreen(MenuScreen(game)) }
+        }
+    }
+
+    private fun initCelebration() {
+        celebrationTime = 0f
+        sparkAccum = 0f
+        sparks.clear()
+    }
+
+    private fun spawnSparks(delta: Float) {
+        sparkAccum += delta
+        val interval = 0.025f
+        while (sparkAccum >= interval) {
+            sparkAccum -= interval
+            val c = sparkColors[(Math.random() * sparkColors.size).toInt()]
+            sparks.add(Spark(
+                x = (GameConstants.FIELD_WIDTH * (0.1f + Math.random() * 0.8f)).toFloat(),
+                y = (Math.random() * 80f).toFloat(),
+                vx = ((Math.random() - 0.5) * 220f).toFloat(),
+                vy = (200f + Math.random() * 380f).toFloat(),
+                r = c.first, g = c.second, b = c.third,
+                life = (1.5f + Math.random() * 2.2f).toFloat()
+            ))
+        }
+    }
+
+    private fun updateSparks(delta: Float) {
+        val gravity = 260f
+        sparks.forEach { s -> s.x += s.vx * delta; s.y += s.vy * delta; s.vy -= gravity * delta; s.life -= delta }
+        sparks.removeAll { it.life <= 0f || it.y < -20f }
+    }
+
+    private fun drawCelebrationPhase() {
+        val W = GameConstants.FIELD_WIDTH
+        val H = GameConstants.FIELD_HEIGHT
+        val t = (celebrationTime / REVEAL_DURATION).coerceIn(0f, 1f)
+        val ease = 1f - (1f - t) * (1f - t)
+
+        Gdx.gl.glClearColor(0.04f, 0.04f, 0.04f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        // Background: starts slightly zoomed, eases to normal scale
+        val scale = 1.14f - ease * 0.14f
+        val tex = bgTexture
+        batch.begin()
+        if (tex != null) {
+            val sw = W * scale; val sh = H * scale
+            batch.setColor(1f, 1f, 1f, 1f)
+            batch.draw(tex, (W - sw) / 2f, (H - sh) / 2f, sw, sh)
+        }
+        batch.end()
+
+        // Sparks
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        for (s in sparks) {
+            val a = (s.life / 2.2f).coerceIn(0f, 1f)
+            shapes.setColor(s.r, s.g, s.b, a)
+            shapes.rect(s.x - 3f, s.y - 3f, 6f, 6f)
+        }
+        shapes.end()
+
+        // Dark bands for text legibility
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.setColor(0f, 0f, 0f, 0.6f)
+        shapes.rect(0f, H * 0.70f, W, H * 0.30f)
+        shapes.setColor(0f, 0f, 0f, 0.45f)
+        shapes.rect(0f, 0f, W, H * 0.18f)
+        shapes.end()
+
+        // Stars
+        if (t > 0.25f) {
+            val starAlpha = ((t - 0.25f) / 0.25f).coerceIn(0f, 1f)
+            val starPulse = 0.85f + 0.15f * sin(celebrationTime * 3f)
+            val starCY = H * 0.83f
+            shapes.begin(ShapeRenderer.ShapeType.Filled)
+            for (i in 0 until 3) {
+                val sx = W / 2f + (i - 1) * 72f
+                if (i < overlayStars) {
+                    shapes.setColor(0.918f, 0.9f, 0f, 0.18f * starPulse * starAlpha)
+                    shapes.circle(sx, starCY, 32f, 22)
+                    shapes.setColor(0.918f, 0.85f + starPulse * 0.05f, 0f, starAlpha)
+                } else {
+                    shapes.setColor(0.22f, 0.22f, 0.22f, starAlpha * 0.6f)
+                }
+                drawStar(sx, starCY, 17f, 7f)
+            }
+            shapes.end()
+        }
+
+        // "LEVEL CLEAR!" title
+        batch.begin()
+        Fonts.xl.color = Color(0f, 1f, 1f, ease)
+        layout.setText(Fonts.xl, "LEVEL CLEAR!")
+        Fonts.xl.draw(batch, "LEVEL CLEAR!", (W - layout.width) / 2f, H * 0.97f)
+
+        // "TAP TO CONTINUE"
+        if (t > 0.45f) {
+            val skipAlpha = ((t - 0.45f) / 0.3f).coerceIn(0f, 0.75f)
+            val blink = 0.6f + 0.4f * sin(celebrationTime * 5f)
+            Fonts.xs.color = Color(1f, 1f, 1f, skipAlpha * blink)
+            layout.setText(Fonts.xs, "TAP TO CONTINUE")
+            Fonts.xs.draw(batch, "TAP TO CONTINUE", (W - layout.width) / 2f, H * 0.07f)
+        }
+        batch.end()
+
+        Gdx.gl.glDisable(GL20.GL_BLEND)
+    }
+
+    private fun drawStar(cx: Float, cy: Float, outerR: Float, innerR: Float) {
+        for (i in 0 until 5) {
+            val a0 = Math.PI * 2 * i / 5 - Math.PI / 2
+            val a1 = a0 + Math.PI / 5
+            val a2 = a0 + Math.PI * 2 / 5
+            val ox0 = cx + (outerR * Math.cos(a0)).toFloat(); val oy0 = cy + (outerR * Math.sin(a0)).toFloat()
+            val ix  = cx + (innerR * Math.cos(a1)).toFloat(); val iy  = cy + (innerR * Math.sin(a1)).toFloat()
+            val ox2 = cx + (outerR * Math.cos(a2)).toFloat(); val oy2 = cy + (outerR * Math.sin(a2)).toFloat()
+            shapes.triangle(cx, cy, ox0, oy0, ix, iy)
+            shapes.triangle(cx, cy, ix, iy, ox2, oy2)
         }
     }
 
