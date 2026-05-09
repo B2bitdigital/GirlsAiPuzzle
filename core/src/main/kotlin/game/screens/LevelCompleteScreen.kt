@@ -5,7 +5,6 @@ import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -25,7 +24,6 @@ class LevelCompleteScreen(
     private val viewport = FitViewport(GameConstants.FIELD_WIDTH, GameConstants.FIELD_HEIGHT, camera)
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
-    private val font = BitmapFont()
     private val layout = GlyphLayout()
 
     private val W = GameConstants.FIELD_WIDTH
@@ -126,16 +124,13 @@ class LevelCompleteScreen(
         shapes.end()
 
         batch.begin()
-        font.data.setScale(1.3f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.md.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
 
-        font.data.setScale(1.0f)
         val stageStr = "STAGE $levelId"
-        layout.setText(font, stageStr)
-        font.color = Color(0f, 0.859f, 0.914f, 1f)
-        font.draw(batch, stageStr, W - layout.width - 16f, H - 18f)
-        font.data.setScale(1f)
+        layout.setText(Fonts.sm, stageStr)
+        Fonts.sm.color = Color(0f, 0.859f, 0.914f, 1f)
+        Fonts.sm.draw(batch, stageStr, W - layout.width - 16f, H - 18f)
         batch.end()
     }
 
@@ -150,25 +145,23 @@ class LevelCompleteScreen(
 
         batch.begin()
         // Shadow
-        font.data.setScale(4f)
-        font.color = Color(0.28f, 0.28f, 0f, 1f)
-        layout.setText(font, "MISSION")
+        Fonts.xl.color = Color(0.28f, 0.28f, 0f, 1f)
+        layout.setText(Fonts.xl, "MISSION")
         val t1x = (W - layout.width) / 2f
-        font.draw(batch, "MISSION", t1x + 3f, H - 60f - 3f)
+        Fonts.xl.draw(batch, "MISSION", t1x + 3f, H - 60f - 3f)
 
-        font.color = Color(0.28f, 0.28f, 0f, 1f)
-        layout.setText(font, "COMPLETE!")
+        Fonts.xl.color = Color(0.28f, 0.28f, 0f, 1f)
+        layout.setText(Fonts.xl, "COMPLETE!")
         val t2x = (W - layout.width) / 2f
-        font.draw(batch, "COMPLETE!", t2x + 3f, H - 118f - 3f)
+        Fonts.xl.draw(batch, "COMPLETE!", t2x + 3f, H - 118f - 3f)
 
         // Main yellow text
-        font.color = Color(0.918f * pulse, 0.918f * pulse, 0f, 1f)
-        font.draw(batch, "MISSION", t1x, H - 60f)
+        Fonts.xl.color = Color(0.918f * pulse, 0.918f * pulse, 0f, 1f)
+        Fonts.xl.draw(batch, "MISSION", t1x, H - 60f)
 
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, "COMPLETE!", t2x, H - 118f)
+        Fonts.xl.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.xl.draw(batch, "COMPLETE!", t2x, H - 118f)
 
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -191,15 +184,13 @@ class LevelCompleteScreen(
         shapes.end()
 
         batch.begin()
-        font.data.setScale(4f)
         for ((i, sx) in starPositions.withIndex()) {
             val earned = i < stars
-            font.color = if (earned) Color(0.918f, 0.85f + pulse * 0.05f, 0f, 1f)
+            Fonts.xl.color = if (earned) Color(0.918f, 0.85f + pulse * 0.05f, 0f, 1f)
                          else Color(0.208f, 0.208f, 0.208f, 1f)
-            layout.setText(font, "★")
-            font.draw(batch, "★", sx - layout.width / 2f, starY + layout.height / 2f)
+            layout.setText(Fonts.xl, "★")
+            Fonts.xl.draw(batch, "★", sx - layout.width / 2f, starY + layout.height / 2f)
         }
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -217,19 +208,16 @@ class LevelCompleteScreen(
 
         batch.begin()
         // Label
-        font.data.setScale(1.0f)
-        font.color = Color(0.576f, 0.573f, 0.467f, 1f)
-        layout.setText(font, "FINAL SCORE")
-        font.draw(batch, "FINAL SCORE", cardX + (cardW - layout.width) / 2f, cardY + cardH - 12f)
+        Fonts.sm.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        layout.setText(Fonts.sm, "FINAL SCORE")
+        Fonts.sm.draw(batch, "FINAL SCORE", cardX + (cardW - layout.width) / 2f, cardY + cardH - 12f)
 
         // Score value
-        font.data.setScale(2.4f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.xl.color = Color(0.918f, 0.918f, 0f, 1f)
         val scoreText = formatScore(score)
-        layout.setText(font, scoreText)
-        font.draw(batch, scoreText, cardX + (cardW - layout.width) / 2f, cardY + cardH - 36f)
+        layout.setText(Fonts.xl, scoreText)
+        Fonts.xl.draw(batch, scoreText, cardX + (cardW - layout.width) / 2f, cardY + cardH - 36f)
 
-        font.data.setScale(1f)
         batch.end()
 
         // Stars indicator
@@ -288,28 +276,26 @@ class LevelCompleteScreen(
         shapes.end()
 
         batch.begin()
-        font.data.setScale(2.2f)
         // RETRY text
-        font.color = Color(0.055f, 0.055f, 0.055f, 1f)
-        layout.setText(font, "RETRY")
-        font.draw(batch, "RETRY",
+        Fonts.lg.color = Color(0.055f, 0.055f, 0.055f, 1f)
+        layout.setText(Fonts.lg, "RETRY")
+        Fonts.lg.draw(batch, "RETRY",
             btnRetry.x + (btnRetry.w - layout.width) / 2f,
             btnRetry.y + (btnRetry.h + layout.height) / 2f)
 
         // NEXT text
-        font.color = Color(0.055f, 0.055f, 0.055f, 1f)
-        layout.setText(font, "NEXT")
-        font.draw(batch, "NEXT",
+        Fonts.lg.color = Color(0.055f, 0.055f, 0.055f, 1f)
+        layout.setText(Fonts.lg, "NEXT")
+        Fonts.lg.draw(batch, "NEXT",
             btnNext.x + (btnNext.w - layout.width) / 2f,
             btnNext.y + (btnNext.h + layout.height) / 2f)
 
         // MENU text
-        font.color = Color(0.898f, 0.886f, 0.882f, 1f)
-        layout.setText(font, "MENU")
-        font.draw(batch, "MENU",
+        Fonts.lg.color = Color(0.898f, 0.886f, 0.882f, 1f)
+        layout.setText(Fonts.lg, "MENU")
+        Fonts.lg.draw(batch, "MENU",
             btnMenu.x + (btnMenu.w - layout.width) / 2f,
             btnMenu.y + (btnMenu.h + layout.height) / 2f)
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -330,12 +316,10 @@ class LevelCompleteScreen(
         shapes.end()
 
         batch.begin()
-        font.data.setScale(0.85f)
-        font.color = Color(0.35f, 0.35f, 0.35f, 1f)
+        Fonts.xs.color = Color(0.35f, 0.35f, 0.35f, 1f)
         val label = "SYSTEM.STAGE.COMPLETE"
-        layout.setText(font, label)
-        font.draw(batch, label, (W - layout.width) / 2f, segY - 8f)
-        font.data.setScale(1f)
+        layout.setText(Fonts.xs, label)
+        Fonts.xs.draw(batch, label, (W - layout.width) / 2f, segY - 8f)
         batch.end()
 
         // Bottom-right LEDs
@@ -364,5 +348,5 @@ class LevelCompleteScreen(
     }
 
     override fun resize(w: Int, h: Int) = viewport.update(w, h, true)
-    override fun dispose() { batch.dispose(); shapes.dispose(); font.dispose() }
+    override fun dispose() { batch.dispose(); shapes.dispose() }
 }
