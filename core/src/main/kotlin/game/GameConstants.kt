@@ -3,7 +3,7 @@ package game
 object GameConstants {
     const val FIELD_WIDTH = 480f
     const val FIELD_HEIGHT = 800f
-    const val HUD_HEIGHT = 40f
+    const val HUD_HEIGHT = 60f
     const val FIELD_OFFSET_X = 20f
     const val FIELD_OFFSET_Y = 20f
     const val PLAY_WIDTH = 440f

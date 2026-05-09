@@ -376,17 +376,18 @@ class GameScreen(
         val timeStr = "%02d:%02d".format(world.timeRemaining.toInt() / 60, world.timeRemaining.toInt() % 60)
         val W = GameConstants.FIELD_WIDTH
         val H = GameConstants.FIELD_HEIGHT
-        val hudH = 60f
+        val hudH = GameConstants.HUD_HEIGHT   // 60f
 
         Gdx.gl.glEnable(GL20.GL_BLEND)
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
+        // Background panel
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0f, 0f, 0f, 0.88f)
         shapes.rect(0f, H - hudH, W, hudH)
         shapes.end()
 
-        // Separator between stats zone and bar zone
+        // Separator lines: outer edge + stats/bar divider
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0.22f, 0.22f, 0.22f, 1f)
         shapes.line(0f, H - hudH, W, H - hudH)
@@ -394,42 +395,21 @@ class GameScreen(
         shapes.line(0f, H - hudH + 14f, W, H - hudH + 14f)
         shapes.end()
 
-        batch.begin()
+        // Lives hearts (center, row 1) — drawn with shapes, Orbitron lacks glyph
+        val lives = world.lives.coerceIn(0, 5)
+        val heartSize = 11f
+        val heartGap = 5f
+        val totalHeartsW = lives * heartSize + (lives - 1).coerceAtLeast(0) * heartGap
+        val heartStartCX = W / 2f - totalHeartsW / 2f + heartSize / 2f
+        val heartCY = H - 15f
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.setColor(0.85f, 0.08f, 0.18f, 1f)
+        for (i in 0 until lives) {
+            drawHeart(heartStartCX + i * (heartSize + heartGap), heartCY, heartSize)
+        }
+        shapes.end()
 
-        // TIME label + value (left)
-        Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
-        Fonts.xs.draw(batch, "TIME", 12f, H - 16f)
-
-        val timeDanger = world.timeRemaining < 30f
-        Fonts.lg.color = if (timeDanger) Color(0.792f, 0f, 0.176f, 1f)
-                     else Color(0f, 0.859f, 0.914f, 1f)
-        Fonts.lg.draw(batch, timeStr, 12f, H - 32f)
-
-        // CLEAR label + value (right)
-        Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
-        val pctStr = "$pct%"
-        layout.setText(Fonts.xs, "CLEAR")
-        Fonts.xs.draw(batch, "CLEAR", W - layout.width - 12f, H - 16f)
-
-        Fonts.lg.color = Color(0.918f, 0.918f, 0f, 1f)
-        layout.setText(Fonts.lg, pctStr)
-        Fonts.lg.draw(batch, pctStr, W - layout.width - 12f, H - 32f)
-
-        // Lives (center)
-        Fonts.md.color = Color(0.792f, 0f, 0.176f, 1f)
-        val livesStr = "♥ ".repeat(world.lives.coerceIn(0, 5)).trimEnd()
-        layout.setText(Fonts.md, livesStr)
-        Fonts.md.draw(batch, livesStr, (W - layout.width) / 2f, H - 24f)
-
-        // Score (center, below lives — 34f gives ~10px gap above bar)
-        Fonts.md.color = Color(0.576f, 0.573f, 0.467f, 1f)
-        val scoreStr = "${world.score}"
-        layout.setText(Fonts.md, scoreStr)
-        Fonts.md.draw(batch, scoreStr, (W - layout.width) / 2f, H - 34f)
-
-        batch.end()
-
-        // Segmented territory bar (16 blocks)
+        // Territory bar (16 segments, bottom of HUD)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         val segments = 16
         val barMargin = 12f
@@ -441,16 +421,58 @@ class GameScreen(
         for (s in 0 until segments) {
             val sx = barMargin + s * (segW + 2f)
             val lit = s < filledSegs
-            shapes.setColor(
-                if (lit) 0.918f else 0.165f,
-                if (lit) 0.918f else 0.165f,
-                0f, 1f
-            )
+            shapes.setColor(if (lit) 0.918f else 0.165f, if (lit) 0.918f else 0.165f, 0f, 1f)
             shapes.rect(sx, barY, segW, barH)
         }
         shapes.end()
 
+        batch.begin()
+
+        val labelColor = Color(0.792f, 0.784f, 0.667f, 1f)
+
+        // TIME label (left, row 1)
+        Fonts.xs.color = labelColor
+        Fonts.xs.draw(batch, "TIME", 12f, H - 4f)
+
+        // TIME value (left, row 2)
+        val timeDanger = world.timeRemaining < 30f
+        Fonts.sm.color = if (timeDanger) Color(0.85f, 0.08f, 0.18f, 1f)
+                         else Color(0f, 0.859f, 0.914f, 1f)
+        Fonts.sm.draw(batch, timeStr, 12f, H - 20f)
+
+        // CLEAR label (right, row 1)
+        Fonts.xs.color = labelColor
+        layout.setText(Fonts.xs, "CLEAR")
+        Fonts.xs.draw(batch, "CLEAR", W - layout.width - 12f, H - 4f)
+
+        // CLEAR value (right, row 2)
+        val pctStr = "$pct%"
+        Fonts.sm.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(Fonts.sm, pctStr)
+        Fonts.sm.draw(batch, pctStr, W - layout.width - 12f, H - 20f)
+
+        // Score (center, row 2 — below hearts)
+        Fonts.xs.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        val scoreStr = "${world.score}"
+        layout.setText(Fonts.xs, scoreStr)
+        Fonts.xs.draw(batch, scoreStr, (W - layout.width) / 2f, H - 30f)
+
+        batch.end()
+
         Gdx.gl.glDisable(GL20.GL_BLEND)
+    }
+
+    private fun drawHeart(cx: Float, cy: Float, size: Float) {
+        val r = size / 4f
+        // Two bumps at top
+        shapes.circle(cx - r, cy + r * 0.5f, r, 12)
+        shapes.circle(cx + r, cy + r * 0.5f, r, 12)
+        // V-point at bottom
+        shapes.triangle(
+            cx - r * 2f, cy + r * 0.5f,
+            cx + r * 2f, cy + r * 0.5f,
+            cx, cy - r * 1.8f
+        )
     }
 
     private fun drawLevelCompleteOverlay() {
