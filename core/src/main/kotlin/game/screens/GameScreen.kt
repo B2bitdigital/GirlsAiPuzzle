@@ -120,6 +120,7 @@ class GameScreen(
         drawCurrentLine()
         drawPowerups()
         drawEnemies()
+        drawExplosions()
         drawPlayer()
 
         Gdx.gl.glDisable(GL20.GL_BLEND)
@@ -335,6 +336,40 @@ class GameScreen(
             // Diamond
             shapes.triangle(px, py + size, px + size, py, px - size, py)
             shapes.triangle(px, py - size, px + size, py, px - size, py)
+        }
+        shapes.end()
+    }
+
+    private fun drawExplosions() {
+        val explosions = world.explosionSys.active
+        if (explosions.isEmpty()) return
+
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        // Flash phase: filled white circle, progress 0..0.25
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        for (exp in explosions) {
+            if (exp.progress < 0.25f) {
+                val t = exp.progress / 0.25f        // 0→1 over flash phase
+                val radius = 4f + t * 16f           // 4→20
+                val alpha = 0.9f * (1f - t)         // 0.9→0
+                shapes.setColor(1f, 1f, 1f, alpha)
+                shapes.circle(exp.x, exp.y, radius, 20)
+            }
+        }
+        shapes.end()
+
+        // Ring phase: stroke circle expands, progress 0.15..1.0
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        for (exp in explosions) {
+            if (exp.progress >= 0.15f) {
+                val t = (exp.progress - 0.15f) / 0.85f  // 0→1 over ring phase
+                val radius = 8f + t * 32f               // 8→40
+                val alpha = 0.8f * (1f - t)             // 0.8→0
+                shapes.setColor(exp.r, exp.g, exp.b, alpha)
+                shapes.circle(exp.x, exp.y, radius, 24)
+            }
         }
         shapes.end()
     }
