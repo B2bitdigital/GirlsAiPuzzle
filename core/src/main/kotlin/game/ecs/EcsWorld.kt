@@ -20,6 +20,7 @@ class EcsWorld(
     val enemyAI = EnemyAISystem()
     val powerupSys = PowerupSystem()
     val difficultySys = DifficultySystem(levelData.id)
+    val explosionSys = ExplosionSystem()
 
     // Entity states
     lateinit var player: EntityState
@@ -146,6 +147,13 @@ class EcsWorld(
                         else false
                     }
                     for (eState in toRespawn) {
+                        val (er, eg, eb) = when ((eState.entity as Entity.Enemy).type) {
+                            EnemyType.SPIDER    -> Triple(1f, 0.15f, 0.15f)
+                            EnemyType.COCKROACH -> Triple(0.7f, 0.45f, 0.1f)
+                            EnemyType.WASP      -> Triple(1f, 0.9f, 0f)
+                            EnemyType.SNAIL     -> Triple(0.2f, 1f, 0.4f)
+                        }
+                        explosionSys.spawn(eState.position.x, eState.position.y, er, eg, eb)
                         score += 1000
                         val freeCell = territory.randomFreeCell()
                         if (freeCell != null) {
@@ -155,6 +163,14 @@ class EcsWorld(
                         }
                     }
                     score += calculateClaimScore(territory.conqueredPercent(), result.snailsTrapped)
+                    val capturedPowerups = activePowerups.filter { pwState ->
+                        movement.toGridPoint(pwState.position.x, pwState.position.y) in result.conqueredCells
+                    }
+                    capturedPowerups.forEach { pwState ->
+                        explosionSys.spawn(pwState.position.x, pwState.position.y, 1f, 0.8f, 0f)
+                        score += 200
+                    }
+                    activePowerups.removeAll(capturedPowerups)
                     lastPlayerGrid = null
                     checkLevelComplete()
                 }
@@ -254,6 +270,7 @@ class EcsWorld(
             }
         }
         activePowerups.removeAll(toRemove)
+        explosionSys.update(delta)
 
         return WorldEvent.None
     }
