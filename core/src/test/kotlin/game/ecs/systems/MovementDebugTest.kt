@@ -8,11 +8,12 @@ class MovementDebugTest {
 
     @Test
     fun `player on top border can move down into free field`() {
-        val ms = MovementSystem()
+        // Use explicit parameters to match old test expectations
+        val ms = MovementSystem(cellSize = 10f, offsetX = 20f, offsetY = 20f, playWidth = 440f, playHeight = 660f)
 
-        // Grid 48×76, cell size 9.539474
-        val cols = 48
-        val rows = 76
+        // Grid 44×66, cell size 10
+        val cols = 44
+        val rows = 66
         val cells = Array(cols) { Array(rows) { CellType.FREE } }
 
         // Set frame as CONQUERED
@@ -25,8 +26,8 @@ class MovementDebugTest {
             cells[cols - 1][r] = CellType.CONQUERED // right
         }
 
-        // Player at center top border: x = 230f (PLAY_WIDTH/2), y = 715.46f (PLAY_HEIGHT - CELL_SIZE)
-        val pos = floatArrayOf(230f, 715.46f)
+        // Player at center top border: x = 240f (PLAY_WIDTH/2 + FIELD_OFFSET_X), y = 670f (FIELD_OFFSET_Y + (GRID_ROWS-1)*CELL_SIZE)
+        val pos = floatArrayOf(240f, 670f)
         println("Initial position: x=${pos[0]}, y=${pos[1]}")
 
         // Convert to grid
@@ -46,7 +47,7 @@ class MovementDebugTest {
         println("Movement returned: $moved")
 
         assertTrue("player should be able to move down from top border", moved)
-        assertTrue("y position should decrease", pos[1] < 715.46f)
+        assertTrue("y position should decrease", pos[1] < 670f)
     }
 
     @Test
@@ -63,8 +64,8 @@ class MovementDebugTest {
         println("FIELD_WIDTH: ${GameConstants.FIELD_WIDTH}")
         println("PLAY_HEIGHT: ${GameConstants.PLAY_HEIGHT}")
 
-        val maxX = cols * cellSize
-        val maxY = rows * cellSize
+        val maxX = GameConstants.PLAY_WIDTH
+        val maxY = GameConstants.PLAY_HEIGHT
 
         println("\nBoundaries check:")
         println("x < 0 or x >= $maxX")

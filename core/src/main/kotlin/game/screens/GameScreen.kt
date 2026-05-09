@@ -306,7 +306,7 @@ class GameScreen(
         val renderPos = playerRenderPos(pos.x, pos.y)
         val cx = renderPos.x
         val cy = renderPos.y
-        val S = GameConstants.PLAYER_DIAMOND_HALF
+        val S = GameConstants.CELL_SIZE
 
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.08f)

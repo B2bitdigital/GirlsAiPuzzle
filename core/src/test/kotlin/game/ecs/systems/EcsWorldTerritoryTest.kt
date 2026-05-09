@@ -106,8 +106,8 @@ class EcsWorldTerritoryTest {
     fun `no enemy deleted when none in conquered zone`() {
         val world = makeWorld(enemyCount = 1)
         // Place enemy in right (large) region — will NOT be conquered
-        world.enemies[0].position.x = 7 * GameConstants.CELL_SIZE
-        world.enemies[0].position.y = 5 * GameConstants.CELL_SIZE
+        world.enemies[0].position.x = GameConstants.FIELD_OFFSET_X + 7 * GameConstants.CELL_SIZE
+        world.enemies[0].position.y = GameConstants.FIELD_OFFSET_Y + 5 * GameConstants.CELL_SIZE
 
         world.territory.startLine(GridPoint(3, 0))
         for (r in 1 until 9) world.territory.extendLine(GridPoint(3, r))
