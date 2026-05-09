@@ -39,21 +39,26 @@ class EcsWorld(
     private var idCounter: Int = 1
 
     fun init() {
-        // Spawn player at top border (last row)
+        // Spawn player at bottom border center, in screen space
         val pc = PlayerComponent(lives = lives)
         player = EntityState(
             entity = Entity.Player(0),
-            position = PositionComponent(GameConstants.FIELD_WIDTH / 2f, GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE),
+            position = PositionComponent(
+                GameConstants.FIELD_OFFSET_X + GameConstants.PLAY_WIDTH / 2f,
+                GameConstants.FIELD_OFFSET_Y
+            ),
             playerComp = pc
         )
 
-        // Spawn enemies from level config
+        // Spawn enemies from level config, in screen space within field bounds
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         var initIdCounter = 1
         for (enemyCfg in levelData.enemies) {
             val type = enemyCfg.toEnemyType()
             repeat(enemyCfg.count) {
-                val startX = (initIdCounter * 80f) % (GameConstants.FIELD_WIDTH - 20f) + 10f
-                val startY = (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
+                val startX = ox + (initIdCounter * 80f) % (GameConstants.PLAY_WIDTH - 20f) + 10f
+                val startY = oy + (GameConstants.PLAY_HEIGHT * 0.5f + initIdCounter * 30f).coerceAtMost(GameConstants.PLAY_HEIGHT - 10f)
                 enemies.add(EntityState(
                     entity = Entity.Enemy(initIdCounter, type, enemyCfg.speed),
                     position = PositionComponent(startX, startY),
@@ -98,7 +103,7 @@ class EcsWorld(
         if (pc.moving) {
             val stillMoving = movement.movePlayer(
                 posArr, pc.dirX, pc.dirY, effectiveSpeed, delta,
-                territory.grid, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
+                territory.cells, GameConstants.GRID_COLS, GameConstants.GRID_ROWS
             )
             pos.x = posArr[0]; pos.y = posArr[1]
             if (!stillMoving) pc.moving = false
@@ -107,8 +112,6 @@ class EcsWorld(
         // Detect territory transition
         val playerGrid = movement.toGridPoint(pos.x, pos.y)
         val onSafe = territory.isOnSafeZone(playerGrid)
-        val onPerimeter = territory.isOnPerimeter(playerGrid)
-        
         // Track last safe position for line start
         if (onSafe) {
             lastSafeGrid = playerGrid
@@ -144,8 +147,8 @@ class EcsWorld(
                         score += 1000
                         val freeCell = territory.randomFreeCell()
                         if (freeCell != null) {
-                            eState.position.x = freeCell.col * GameConstants.CELL_SIZE
-                            eState.position.y = freeCell.row * GameConstants.CELL_SIZE
+                            eState.position.x = GameConstants.FIELD_OFFSET_X + freeCell.col * GameConstants.CELL_SIZE
+                            eState.position.y = GameConstants.FIELD_OFFSET_Y + freeCell.row * GameConstants.CELL_SIZE
                             enemies.add(eState)
                         }
                     }
@@ -194,7 +197,7 @@ class EcsWorld(
                 type = e.type, pos = ePosArr, dirX = eDirX, dirY = eDirY,
                 speed = ec.speed * speedMult,
                 freezeTimer = ec.freezeTimer, delta = delta,
-                grid = territory.grid, playerX = pos.x, playerY = pos.y
+                cells = territory.cells, playerX = pos.x, playerY = pos.y
             )
             ePos.x = ePosArr[0]; ePos.y = ePosArr[1]
             ec.dirX = eDirX[0]; ec.dirY = eDirY[0]
@@ -203,7 +206,7 @@ class EcsWorld(
 
             // Spider/Wasp: hit player directly SOLO se NON su perimetro
             if (e.type == EnemyType.SPIDER || e.type == EnemyType.WASP) {
-                if (!shielded && !territory.isOnPerimeter(playerGrid) && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
+                if (!shielded && territory.isDrawing && collision.playerHitByEnemy(pos.x, pos.y, ePos.x, ePos.y)) {
                     return loseLife()
                 }
             }
@@ -220,7 +223,7 @@ class EcsWorld(
         if (timeRemaining <= 0f) return loseLife()
 
         val timerRef = floatArrayOf(timeRemaining)
-        val spawnResult = powerupSys.update(delta, levelData.powerupTypes(), territory.grid)
+        val spawnResult = powerupSys.update(delta, levelData.powerupTypes(), territory.cells)
         if (spawnResult != null) {
             activePowerups.add(EntityState(
                 entity = Entity.Powerup(idCounter++, spawnResult.type),
@@ -258,9 +261,9 @@ class EcsWorld(
             gameOver = true
             return WorldEvent.GameOver
         }
-        // Reset player position to top border
-        player.position.x = GameConstants.FIELD_WIDTH / 2f
-        player.position.y = GameConstants.PLAY_HEIGHT - GameConstants.CELL_SIZE
+        // Reset player to bottom border center
+        player.position.x = GameConstants.FIELD_OFFSET_X + GameConstants.PLAY_WIDTH / 2f
+        player.position.y = GameConstants.FIELD_OFFSET_Y
         player.playerComp!!.moving = false
         return WorldEvent.LifeLost
     }

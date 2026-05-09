@@ -18,6 +18,7 @@ import game.ecs.EcsWorld
 import game.ecs.EnemyType
 import game.ecs.Entity
 import game.ecs.WorldEvent
+import game.ecs.systems.CellType
 import game.ecs.systems.GridPoint
 import game.level.LevelLoader
 import kotlin.math.abs
@@ -44,7 +45,6 @@ class GameScreen(
     private val colorWasp      = Color(1f, 0.9f, 0f, 1f)
     private val colorSnail     = Color(0.2f, 1f, 0.4f, 1f)
     private val colorPlayer    = Color(0f, 1f, 1f, 1f)
-    private val colorLine      = Color(1f, 0.55f, 0f, 1f)
 
     private var levelCompleteOverlay = false
     private var overlayStars = 0
@@ -168,21 +168,23 @@ class GameScreen(
     private fun drawBackground() {
         val tex = bgTexture ?: return
         batch.begin()
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         val texW = tex.width.toFloat()
         val texH = tex.height.toFloat()
         val cellTexW = texW / GameConstants.GRID_COLS
         val cellTexH = texH / GameConstants.GRID_ROWS
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (grid[c][r]) {
+                if (cells[c][r] == CellType.CONQUERED) {
                     val srcX = (c * cellTexW).toInt()
                     val srcY = (texH - (r + 1) * cellTexH).toInt()
                     val srcW = cellTexW.toInt().coerceAtLeast(1)
                     val srcH = cellTexH.toInt().coerceAtLeast(1)
                     batch.draw(tex,
-                        c * cs, r * cs, cs, cs,
+                        ox + c * cs, oy + r * cs, cs, cs,
                         srcX, srcY, srcW, srcH,
                         false, false)
                 }
@@ -194,60 +196,58 @@ class GameScreen(
     private fun drawFreeOverlay() {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0f, 0f, 0.06f, 0.92f)
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (!grid[c][r]) shapes.rect(c * cs, r * cs, cs, cs)
+                // LINE cells are left uncovered so the cyan trail polyline is visible over them
+                if (cells[c][r] == CellType.FREE) shapes.rect(ox + c * cs, oy + r * cs, cs, cs)
             }
         }
         shapes.end()
     }
 
     private fun drawTerritoryBorder() {
-        val grid = world.territory.grid
+        val cells = world.territory.cells
         val cs = GameConstants.CELL_SIZE
+        val ox = GameConstants.FIELD_OFFSET_X
+        val oy = GameConstants.FIELD_OFFSET_Y
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0f, 0.8f, 0.8f, 0.5f)
         for (c in 0 until GameConstants.GRID_COLS) {
             for (r in 0 until GameConstants.GRID_ROWS) {
-                if (!grid[c][r]) continue
-                if (c + 1 < GameConstants.GRID_COLS && !grid[c + 1][r])
-                    shapes.line((c + 1) * cs, r * cs, (c + 1) * cs, (r + 1) * cs)
-                if (c - 1 >= 0 && !grid[c - 1][r])
-                    shapes.line(c * cs, r * cs, c * cs, (r + 1) * cs)
-                if (r + 1 < GameConstants.GRID_ROWS && !grid[c][r + 1])
-                    shapes.line(c * cs, (r + 1) * cs, (c + 1) * cs, (r + 1) * cs)
-                if (r - 1 >= 0 && !grid[c][r - 1])
-                    shapes.line(c * cs, r * cs, (c + 1) * cs, r * cs)
+                if (cells[c][r] != CellType.CONQUERED) continue
+                if (c + 1 < GameConstants.GRID_COLS && cells[c + 1][r] != CellType.CONQUERED)
+                    shapes.line(ox + (c + 1) * cs, oy + r * cs, ox + (c + 1) * cs, oy + (r + 1) * cs)
+                if (c - 1 >= 0 && cells[c - 1][r] != CellType.CONQUERED)
+                    shapes.line(ox + c * cs, oy + r * cs, ox + c * cs, oy + (r + 1) * cs)
+                if (r + 1 < GameConstants.GRID_ROWS && cells[c][r + 1] != CellType.CONQUERED)
+                    shapes.line(ox + c * cs, oy + (r + 1) * cs, ox + (c + 1) * cs, oy + (r + 1) * cs)
+                if (r - 1 >= 0 && cells[c][r - 1] != CellType.CONQUERED)
+                    shapes.line(ox + c * cs, oy + r * cs, ox + (c + 1) * cs, oy + r * cs)
             }
         }
         shapes.end()
     }
 
     private fun drawCurrentLine() {
-        if (world.territory.currentLine.isEmpty()) return
-        val pulse = (System.currentTimeMillis() % 600) / 600f
-        val cs = GameConstants.CELL_SIZE
-
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        // Glow layer
-        shapes.setColor(colorLine.r, colorLine.g, colorLine.b, 0.18f)
-        for (pt in world.territory.currentLine) {
-            shapes.rect(pt.col * cs - cs * 0.5f, pt.row * cs - cs * 0.5f, cs * 2f, cs * 2f)
-        }
-        // Core
-        val bright = 0.7f + pulse * 0.3f
-        shapes.setColor(colorLine.r, colorLine.g * bright, 0f, 1f)
-        for (pt in world.territory.currentLine) {
-            shapes.rect(pt.col * cs, pt.row * cs, cs, cs)
+        val line = world.territory.currentLine
+        if (line.size < 2) return
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.setColor(0f, 0.8f, 0.8f, 0.5f)
+        for (i in 0 until line.size - 1) {
+            val (x1, y1) = gridPointRenderPos(line[i])
+            val (x2, y2) = gridPointRenderPos(line[i + 1])
+            shapes.line(x1, y1, x2, y2)
         }
         shapes.end()
     }
 
     private fun drawEnemies() {
         val tex = enemyTexture
-        val offsetX = 0f
+        val offsetX = 0f  // positions already in screen space
         val offsetY = 0f
         if (tex != null) {
             batch.begin()

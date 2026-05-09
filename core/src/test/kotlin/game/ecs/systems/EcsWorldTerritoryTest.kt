@@ -49,18 +49,17 @@ class EcsWorldTerritoryTest {
         assertEquals(1, initialCount)
 
         // Place enemy at interior cell (1,5) — inside the left region we'll conquer
-        world.enemies[0].position.x = 1 * GameConstants.CELL_SIZE
-        world.enemies[0].position.y = 5 * GameConstants.CELL_SIZE
+        world.enemies[0].position.x = GameConstants.FIELD_OFFSET_X + 1 * GameConstants.CELL_SIZE
+        world.enemies[0].position.y = GameConstants.FIELD_OFFSET_Y + 5 * GameConstants.CELL_SIZE
 
         // Draw line from (3,0) to (3,9) — divides grid: left (cols 1-2) vs right (cols 4-8)
         world.territory.startLine(GridPoint(3, 0))
         for (r in 1 until 9) world.territory.extendLine(GridPoint(3, r))
         world.territory.extendLine(GridPoint(3, 9))
 
-        val dangerousPositions = world.enemies
-            .filter { (it.entity as? Entity.Enemy)?.type != EnemyType.SNAIL }
-            .map { world.movement.toGridPoint(it.position.x, it.position.y) }
-        val result = world.territory.closeLine(dangerousPositions, emptyList())
+        // Pass emptyList() to closeLine so the algorithm freely picks the smaller (left) region,
+        // allowing the enemy at col=1 to be trapped in the conquered area — triggering respawn logic.
+        val result = world.territory.closeLine(emptyList(), emptyList())
 
         assertTrue(result is CloseResult.Success)
         val success = result as CloseResult.Success
@@ -75,8 +74,8 @@ class EcsWorldTerritoryTest {
             world.score += 1000
             val freeCell = world.territory.randomFreeCell()
             if (freeCell != null) {
-                eState.position.x = freeCell.col * GameConstants.CELL_SIZE
-                eState.position.y = freeCell.row * GameConstants.CELL_SIZE
+                eState.position.x = GameConstants.FIELD_OFFSET_X + freeCell.col * GameConstants.CELL_SIZE
+                eState.position.y = GameConstants.FIELD_OFFSET_Y + freeCell.row * GameConstants.CELL_SIZE
                 world.enemies.add(eState)
             }
         }
@@ -85,7 +84,7 @@ class EcsWorldTerritoryTest {
         assertTrue("score increased for trapped enemy", world.score >= 1000)
         val respawned = world.enemies[0]
         val gp = world.movement.toGridPoint(respawned.position.x, respawned.position.y)
-        assertFalse("respawned enemy not in conquered cell", world.territory.grid[gp.col][gp.row])
+        assertEquals("respawned enemy not in conquered cell", CellType.FREE, world.territory.cells[gp.col][gp.row])
     }
 
     @Test

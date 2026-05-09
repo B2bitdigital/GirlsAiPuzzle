@@ -6,15 +6,15 @@ import org.junit.Test
 
 class EnemyAISystemTest {
 
-    // Minimal 10x10 grid for testing
-    private fun makeGrid(cols: Int = 10, rows: Int = 10): Array<BooleanArray> {
-        val g = Array(cols) { BooleanArray(rows) }
-        for (c in 0 until cols) { g[c][0] = true; g[c][rows - 1] = true }
-        for (r in 0 until rows) { g[0][r] = true; g[cols - 1][r] = true }
+    // Minimal 10x10 cells grid for testing (frame = CONQUERED, interior = FREE)
+    private fun makeCells(cols: Int = 10, rows: Int = 10): Array<Array<CellType>> {
+        val g = Array(cols) { Array(rows) { CellType.FREE } }
+        for (c in 0 until cols) { g[c][0] = CellType.CONQUERED; g[c][rows - 1] = CellType.CONQUERED }
+        for (r in 0 until rows) { g[0][r] = CellType.CONQUERED; g[cols - 1][r] = CellType.CONQUERED }
         return g
     }
 
-    private val ai = EnemyAISystem(cellSize = 10f, fieldWidth = 100f, fieldHeight = 100f)
+    private val ai = EnemyAISystem(cellSize = 10f, offsetX = 0f, offsetY = 0f, fieldWidth = 100f, fieldHeight = 100f)
 
     @Test
     fun `frozen enemy does not move`() {
@@ -23,7 +23,7 @@ class EnemyAISystemTest {
             type = EnemyType.SPIDER,
             pos = pos, dirX = floatArrayOf(1f), dirY = floatArrayOf(0f),
             speed = 60f, freezeTimer = 1f, delta = 0.1f,
-            grid = makeGrid(), playerX = 20f, playerY = 20f
+            cells = makeCells(), playerX = 20f, playerY = 20f
         )
         assertEquals(50f, pos[0], 0.01f)
         assertEquals(50f, pos[1], 0.01f)
@@ -38,7 +38,7 @@ class EnemyAISystemTest {
             type = EnemyType.COCKROACH,
             pos = pos, dirX = dirX, dirY = dirY,
             speed = 100f, freezeTimer = 0f, delta = 0.1f,
-            grid = makeGrid(), playerX = 20f, playerY = 20f
+            cells = makeCells(), playerX = 20f, playerY = 20f
         )
         assertEquals(-1f, dirX[0], 0.01f)
     }
@@ -52,7 +52,7 @@ class EnemyAISystemTest {
             type = EnemyType.WASP,
             pos = pos, dirX = dirX, dirY = dirY,
             speed = 80f, freezeTimer = 0f, delta = 0.1f,
-            grid = makeGrid(), playerX = 70f, playerY = 20f
+            cells = makeCells(), playerX = 70f, playerY = 20f
         )
         assertTrue("wasp should move toward player (right)", pos[0] > 20f)
     }
@@ -67,7 +67,7 @@ class EnemyAISystemTest {
                 type = EnemyType.SPIDER,
                 pos = pos, dirX = dirX, dirY = dirY,
                 speed = 60f, freezeTimer = 0f, delta = 0.1f,
-                grid = makeGrid(), playerX = 50f, playerY = 50f
+                cells = makeCells(), playerX = 50f, playerY = 50f
             )
         }
         assertTrue(pos[0] in 0f..100f)

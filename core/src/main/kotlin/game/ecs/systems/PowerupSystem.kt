@@ -17,7 +17,7 @@ class PowerupSystem(
     private var spawnTimer = 0f
     private var elapsedTime = 0f
 
-    fun update(delta: Float, availableTypes: List<PowerupType>, grid: Array<BooleanArray>? = null): SpawnedPowerup? {
+    fun update(delta: Float, availableTypes: List<PowerupType>, cells: Array<Array<CellType>>? = null): SpawnedPowerup? {
         elapsedTime += delta
         spawnTimer += delta
         if (spawnTimer < currentInterval() || availableTypes.isEmpty()) return null
@@ -28,7 +28,7 @@ class PowerupSystem(
         repeat(20) {
             val x = Random.nextFloat() * (fieldWidth - margin * 2) + margin
             val y = Random.nextFloat() * (fieldHeight - margin * 2) + margin
-            if (grid == null || !isConquered(x, y, grid)) {
+            if (cells == null || !isConquered(x, y, cells)) {
                 return SpawnedPowerup(type, x, y)
             }
         }
@@ -57,9 +57,10 @@ class PowerupSystem(
         return (spawnInterval - reduction).coerceAtLeast(5f)
     }
 
-    private fun isConquered(x: Float, y: Float, grid: Array<BooleanArray>): Boolean {
-        val col = (x / cellSize).toInt().coerceIn(0, grid.size - 1)
-        val row = (y / cellSize).toInt().coerceIn(0, grid[0].size - 1)
-        return grid[col][row]
+    // Powerups spawn only in FREE cells — not in CONQUERED territory or on the player's line.
+    private fun isConquered(x: Float, y: Float, cells: Array<Array<CellType>>): Boolean {
+        val col = (x / cellSize).toInt().coerceIn(0, cells.size - 1)
+        val row = (y / cellSize).toInt().coerceIn(0, cells[0].size - 1)
+        return cells[col][row] != CellType.FREE
     }
 }
