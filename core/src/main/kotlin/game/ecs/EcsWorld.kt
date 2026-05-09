@@ -261,9 +261,11 @@ class EcsWorld(
             gameOver = true
             return WorldEvent.GameOver
         }
-        // Reset player to bottom border center
-        player.position.x = GameConstants.FIELD_OFFSET_X + GameConstants.PLAY_WIDTH / 2f
-        player.position.y = GameConstants.FIELD_OFFSET_Y
+        // Reset player to current CONQUERED border
+        val respawn = BorderFinder.randomBorderCell(territory.cells, GameConstants.GRID_COLS, GameConstants.GRID_ROWS)
+            ?: GridPoint(GameConstants.GRID_COLS / 2, 0)
+        player.position.x = GameConstants.FIELD_OFFSET_X + respawn.col * GameConstants.CELL_SIZE
+        player.position.y = GameConstants.FIELD_OFFSET_Y + respawn.row * GameConstants.CELL_SIZE
         player.playerComp!!.moving = false
         return WorldEvent.LifeLost
     }
