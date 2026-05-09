@@ -376,28 +376,28 @@ class GameScreen(
 
         // TIME label + value (left)
         Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
-        Fonts.xs.draw(batch, "TIME", 12f, H - 10f)
+        Fonts.xs.draw(batch, "TIME", 12f, H - 16f)
 
         val timeDanger = world.timeRemaining < 30f
         Fonts.lg.color = if (timeDanger) Color(0.792f, 0f, 0.176f, 1f)
                      else Color(0f, 0.859f, 0.914f, 1f)
-        Fonts.lg.draw(batch, timeStr, 12f, H - 22f)
+        Fonts.lg.draw(batch, timeStr, 12f, H - 32f)
 
         // CLEAR label + value (right)
         Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
         val pctStr = "$pct%"
         layout.setText(Fonts.xs, "CLEAR")
-        Fonts.xs.draw(batch, "CLEAR", W - layout.width - 12f, H - 10f)
+        Fonts.xs.draw(batch, "CLEAR", W - layout.width - 12f, H - 16f)
 
         Fonts.lg.color = Color(0.918f, 0.918f, 0f, 1f)
         layout.setText(Fonts.lg, pctStr)
-        Fonts.lg.draw(batch, pctStr, W - layout.width - 12f, H - 22f)
+        Fonts.lg.draw(batch, pctStr, W - layout.width - 12f, H - 32f)
 
         // Lives (center)
         Fonts.md.color = Color(0.792f, 0f, 0.176f, 1f)
         val livesStr = "♥ ".repeat(world.lives.coerceIn(0, 5)).trimEnd()
         layout.setText(Fonts.md, livesStr)
-        Fonts.md.draw(batch, livesStr, (W - layout.width) / 2f, H - 12f)
+        Fonts.md.draw(batch, livesStr, (W - layout.width) / 2f, H - 24f)
 
         // Score (center, below lives — 34f gives ~10px gap above bar)
         Fonts.md.color = Color(0.576f, 0.573f, 0.467f, 1f)
