@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -34,7 +33,6 @@ class GameScreen(
     private val viewport = FitViewport(GameConstants.FIELD_WIDTH, GameConstants.FIELD_HEIGHT, camera)
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
-    private val font = BitmapFont()
     private val layout = GlyphLayout()
 
     private var bgTexture: Texture? = null
@@ -361,64 +359,60 @@ class GameScreen(
         Gdx.gl.glEnable(GL20.GL_BLEND)
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-        // HUD background — solid black
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0f, 0f, 0f, 0.88f)
         shapes.rect(0f, H - hudH, W, hudH)
         shapes.end()
+
+        // Separator between stats zone and bar zone
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0.22f, 0.22f, 0.22f, 1f)
         shapes.line(0f, H - hudH, W, H - hudH)
+        shapes.setColor(0.18f, 0.18f, 0.18f, 1f)
+        shapes.line(0f, H - hudH + 14f, W, H - hudH + 14f)
         shapes.end()
 
         batch.begin()
 
         // TIME label + value (left)
-        font.data.setScale(0.9f)
-        font.color = Color(0.792f, 0.784f, 0.667f, 1f)
-        font.draw(batch, "TIME", 12f, H - 10f)
+        Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
+        Fonts.xs.draw(batch, "TIME", 12f, H - 10f)
 
-        font.data.setScale(1.9f)
         val timeDanger = world.timeRemaining < 30f
-        font.color = if (timeDanger) Color(0.792f, 0f, 0.176f, 1f)
+        Fonts.lg.color = if (timeDanger) Color(0.792f, 0f, 0.176f, 1f)
                      else Color(0f, 0.859f, 0.914f, 1f)
-        font.draw(batch, timeStr, 12f, H - 26f)
+        Fonts.lg.draw(batch, timeStr, 12f, H - 22f)
 
         // CLEAR label + value (right)
-        font.data.setScale(0.9f)
-        font.color = Color(0.792f, 0.784f, 0.667f, 1f)
+        Fonts.xs.color = Color(0.792f, 0.784f, 0.667f, 1f)
         val pctStr = "$pct%"
-        layout.setText(font, "CLEAR")
-        font.draw(batch, "CLEAR", W - layout.width - 12f, H - 10f)
+        layout.setText(Fonts.xs, "CLEAR")
+        Fonts.xs.draw(batch, "CLEAR", W - layout.width - 12f, H - 10f)
 
-        font.data.setScale(1.9f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        layout.setText(font, pctStr)
-        font.draw(batch, pctStr, W - layout.width - 12f, H - 26f)
+        Fonts.lg.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(Fonts.lg, pctStr)
+        Fonts.lg.draw(batch, pctStr, W - layout.width - 12f, H - 22f)
 
-        // Lives (center, small)
-        font.data.setScale(1.5f)
-        font.color = Color(0.792f, 0f, 0.176f, 1f)
+        // Lives (center)
+        Fonts.md.color = Color(0.792f, 0f, 0.176f, 1f)
         val livesStr = "♥ ".repeat(world.lives.coerceIn(0, 5)).trimEnd()
-        layout.setText(font, livesStr)
-        font.draw(batch, livesStr, (W - layout.width) / 2f, H - 12f)
+        layout.setText(Fonts.md, livesStr)
+        Fonts.md.draw(batch, livesStr, (W - layout.width) / 2f, H - 12f)
 
-        // Score (center bottom row)
-        font.data.setScale(1.3f)
-        font.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        // Score (center, below lives — 34f gives ~10px gap above bar)
+        Fonts.md.color = Color(0.576f, 0.573f, 0.467f, 1f)
         val scoreStr = "${world.score}"
-        layout.setText(font, scoreStr)
-        font.draw(batch, scoreStr, (W - layout.width) / 2f, H - 38f)
+        layout.setText(Fonts.md, scoreStr)
+        Fonts.md.draw(batch, scoreStr, (W - layout.width) / 2f, H - 34f)
 
-        font.data.setScale(1f)
         batch.end()
 
         // Segmented territory bar (16 blocks)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         val segments = 16
         val barMargin = 12f
-        val barY = H - hudH + 6f
-        val barH = 8f
+        val barY = H - hudH + 2f
+        val barH = 10f
         val totalBarW = W - barMargin * 2f
         val segW = (totalBarW - (segments - 1) * 2f) / segments
         val filledSegs = (pct * segments / 100f).toInt()
@@ -463,54 +457,48 @@ class GameScreen(
         batch.begin()
 
         // Title
-        font.data.setScale(2.4f)
-        font.color = Color(0f, 1f, 1f, 1f)
-        layout.setText(font, "LEVEL CLEAR!")
-        font.draw(batch, "LEVEL CLEAR!", (W - layout.width) / 2f, panelY + panelH - 24f)
+        Fonts.xl.color = Color(0f, 1f, 1f, 1f)
+        layout.setText(Fonts.xl, "LEVEL CLEAR!")
+        Fonts.xl.draw(batch, "LEVEL CLEAR!", (W - layout.width) / 2f, panelY + panelH - 24f)
 
         // Stars
-        font.data.setScale(2.8f)
         for (i in 1..3) {
             val starColor = if (i <= overlayStars) Color(1f, 0.9f, 0f, 1f) else Color(0.3f, 0.3f, 0.3f, 1f)
-            font.color = starColor
-            layout.setText(font, "★")
+            Fonts.xl.color = starColor
+            layout.setText(Fonts.xl, "★")
             val starX = W / 2f + (i - 2) * 60f - layout.width / 2f
-            font.draw(batch, "★", starX, panelY + panelH - 70f)
+            Fonts.xl.draw(batch, "★", starX, panelY + panelH - 70f)
         }
 
         // Score
-        font.data.setScale(1.2f)
-        font.color = Color(0.8f, 0.8f, 0.6f, 1f)
+        Fonts.sm.color = Color(0.8f, 0.8f, 0.6f, 1f)
         val scoreLabel = "SCORE: $overlayScore"
-        layout.setText(font, scoreLabel)
-        font.draw(batch, scoreLabel, (W - layout.width) / 2f, panelY + panelH - 130f)
+        layout.setText(Fonts.sm, scoreLabel)
+        Fonts.sm.draw(batch, scoreLabel, (W - layout.width) / 2f, panelY + panelH - 130f)
 
         // Area cleared
-        font.data.setScale(1.2f)
-        font.color = Color(0.9f, 0.9f, 0f, 1f)
+        Fonts.sm.color = Color(0.9f, 0.9f, 0f, 1f)
         val pctLabel = "CLEARED: ${world.territory.conqueredPercent().toInt()}%"
-        layout.setText(font, pctLabel)
-        font.draw(batch, pctLabel, (W - layout.width) / 2f, panelY + panelH - 165f)
+        layout.setText(Fonts.sm, pctLabel)
+        Fonts.sm.draw(batch, pctLabel, (W - layout.width) / 2f, panelY + panelH - 165f)
 
         // Buttons
         val btnW = panelW / 3f - 12f
         val btnY = panelY + 52f
         val btnH = 38f
 
-        font.data.setScale(1.1f)
-        font.color = Color(0f, 0.85f, 0.85f, 1f)
-        layout.setText(font, "RETRY")
-        font.draw(batch, "RETRY", panelX + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+        Fonts.sm.color = Color(0f, 0.85f, 0.85f, 1f)
+        layout.setText(Fonts.sm, "RETRY")
+        Fonts.sm.draw(batch, "RETRY", panelX + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
 
-        font.color = Color(1f, 0.9f, 0f, 1f)
-        layout.setText(font, "NEXT")
-        font.draw(batch, "NEXT", panelX + btnW + 16f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+        Fonts.sm.color = Color(1f, 0.9f, 0f, 1f)
+        layout.setText(Fonts.sm, "NEXT")
+        Fonts.sm.draw(batch, "NEXT", panelX + btnW + 16f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
 
-        font.color = Color(0.7f, 0.7f, 0.7f, 1f)
-        layout.setText(font, "MENU")
-        font.draw(batch, "MENU", panelX + 2 * (btnW + 6f) + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
+        Fonts.sm.color = Color(0.7f, 0.7f, 0.7f, 1f)
+        layout.setText(Fonts.sm, "MENU")
+        Fonts.sm.draw(batch, "MENU", panelX + 2 * (btnW + 6f) + 10f + (btnW - layout.width) / 2f, btnY + btnH / 2f + 8f)
 
-        font.data.setScale(1f)
         batch.end()
 
         shapes.begin(ShapeRenderer.ShapeType.Line)
@@ -538,7 +526,6 @@ class GameScreen(
     override fun dispose() {
         batch.dispose()
         shapes.dispose()
-        font.dispose()
         bgTexture?.dispose()
         enemyTexture?.dispose()
     }
