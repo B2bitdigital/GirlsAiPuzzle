@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -20,7 +19,6 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
     private val viewport = FitViewport(GameConstants.FIELD_WIDTH, GameConstants.FIELD_HEIGHT, camera)
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
-    private val font = BitmapFont()
     private val layout = GlyphLayout()
 
     private val W = GameConstants.FIELD_WIDTH
@@ -121,24 +119,19 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         shapes.end()
 
         batch.begin()
-        font.data.setScale(1.3f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
-        font.data.setScale(1.0f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, "V1.0-BETA", W - 88f, H - 18f)
-        font.data.setScale(1f)
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.md.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
+        Fonts.sm.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.sm.draw(batch, "V1.0-BETA", W - 88f, H - 18f)
         batch.end()
     }
 
     private fun drawTitle() {
         batch.begin()
-        font.data.setScale(1.6f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        layout.setText(font, "SELECT LEVEL")
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(Fonts.md, "SELECT LEVEL")
         val tx = (W - layout.width) / 2f
-        font.draw(batch, "SELECT LEVEL", tx, H - 58f)
-        font.data.setScale(1f)
+        Fonts.md.draw(batch, "SELECT LEVEL", tx, H - 58f)
         batch.end()
 
         val lineY = H - 70f
@@ -229,41 +222,37 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
             val stars = if (unlocked) game.prefs.getStars(i) else 0
 
             // Level number
-            font.data.setScale(1.4f)
             when {
-                selected  -> font.color = Color(0.918f, 0.918f, 0f, 1f)
-                completed -> font.color = Color(0.918f, 0.918f, 0f, 1f)
-                unlocked  -> font.color = Color(0.898f, 0.886f, 0.882f, 1f)
-                else      -> font.color = Color(0.208f, 0.208f, 0.208f, 1f)
+                selected  -> Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+                completed -> Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+                unlocked  -> Fonts.md.color = Color(0.898f, 0.886f, 0.882f, 1f)
+                else      -> Fonts.md.color = Color(0.208f, 0.208f, 0.208f, 1f)
             }
             val numStr = "%02d".format(i)
-            layout.setText(font, numStr)
-            font.draw(batch, numStr,
+            layout.setText(Fonts.md, numStr)
+            Fonts.md.draw(batch, numStr,
                 r.x + (r.w - layout.width) / 2f,
                 r.y + r.h - 6f)
 
             // Lock indicator for locked levels
             if (!unlocked) {
-                font.data.setScale(0.75f)
-                font.color = Color(0.282f, 0.282f, 0.192f, 1f)
-                layout.setText(font, "LOCK")
-                font.draw(batch, "LOCK",
+                Fonts.xs.color = Color(0.282f, 0.282f, 0.192f, 1f)
+                layout.setText(Fonts.xs, "LOCK")
+                Fonts.xs.draw(batch, "LOCK",
                     r.x + (r.w - layout.width) / 2f,
                     r.y + 14f)
             }
 
             // Stars (completed only)
             if (stars > 0) {
-                font.data.setScale(0.75f)
-                font.color = Color(0.918f, 0.918f, 0f, 1f)
+                Fonts.xs.color = Color(0.918f, 0.918f, 0f, 1f)
                 val starStr = "★".repeat(stars)
-                layout.setText(font, starStr)
-                font.draw(batch, starStr,
+                layout.setText(Fonts.xs, starStr)
+                Fonts.xs.draw(batch, starStr,
                     r.x + (r.w - layout.width) / 2f,
                     r.y + 14f)
             }
         }
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -287,25 +276,22 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         shapes.end()
 
         batch.begin()
-        font.data.setScale(2.0f)
-        font.color = Color(0.055f, 0.055f, 0.055f, 1f)
+        Fonts.lg.color = Color(0.055f, 0.055f, 0.055f, 1f)
         val startLabel = if (selectedLevel > 0) "START  LEVEL $selectedLevel" else "START SELECTED"
-        layout.setText(font, startLabel)
-        font.draw(batch, startLabel,
+        layout.setText(Fonts.lg, startLabel)
+        Fonts.lg.draw(batch, startLabel,
             btnStart.x + (btnStart.w - layout.width) / 2f,
             btnStart.y + (btnStart.h + layout.height) / 2f)
 
-        font.data.setScale(1.5f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        layout.setText(font, "HOME")
-        font.draw(batch, "HOME",
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(Fonts.md, "HOME")
+        Fonts.md.draw(batch, "HOME",
             btnHome.x + (btnHome.w - layout.width) / 2f,
             btnHome.y + (btnHome.h + layout.height) / 2f)
-        layout.setText(font, "RESET")
-        font.draw(batch, "RESET",
+        layout.setText(Fonts.md, "RESET")
+        Fonts.md.draw(batch, "RESET",
             btnReset.x + (btnReset.w - layout.width) / 2f,
             btnReset.y + (btnReset.h + layout.height) / 2f)
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -340,7 +326,6 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
     override fun dispose() {
         batch.dispose()
         shapes.dispose()
-        font.dispose()
         waifuIcons.forEach { it?.dispose() }
     }
 }
