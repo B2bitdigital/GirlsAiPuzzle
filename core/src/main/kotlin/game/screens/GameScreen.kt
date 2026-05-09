@@ -294,32 +294,22 @@ class GameScreen(
         }
     }
 
-    /** Draws a filled diamond (rhombus) centered at (cx, cy) with half-span s. */
-    private fun drawDiamond(cx: Float, cy: Float, s: Float) {
-        shapes.triangle(cx, cy + s, cx + s, cy, cx - s, cy)
-        shapes.triangle(cx - s, cy, cx + s, cy, cx, cy - s)
-    }
-
     private fun drawPlayer() {
         val pos = world.player.position
         val pulse = (System.currentTimeMillis() % 800) / 800f
         val renderPos = playerRenderPos(pos.x, pos.y)
         val cx = renderPos.x
         val cy = renderPos.y
-        val S = GameConstants.CELL_SIZE
 
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.08f)
-        drawDiamond(cx, cy, S * 2.8f)
-        shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.22f)
-        drawDiamond(cx, cy, S * 1.6f)
-        shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.55f)
-        drawDiamond(cx, cy, S)
+        shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.12f)
+        shapes.circle(cx, cy, 8f, 16)
+        shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 0.30f)
+        shapes.circle(cx, cy, 5f, 16)
         shapes.setColor(colorPlayer.r, colorPlayer.g, colorPlayer.b, 1f)
-        drawDiamond(cx, cy, S * 0.6f + pulse * S * 0.15f)
+        shapes.circle(cx, cy, 2.5f + pulse * 1.0f, 12)
         shapes.end()
 
-        // Direction indicator
         val pc = world.player.playerComp
         if (pc != null && pc.moving) {
             val dx = pc.dirX * 18f
