@@ -5,7 +5,6 @@ import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -20,7 +19,6 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
     private val viewport = FitViewport(GameConstants.FIELD_WIDTH, GameConstants.FIELD_HEIGHT, camera)
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
-    private val font = BitmapFont()
     private val layout = GlyphLayout()
 
     private val W = GameConstants.FIELD_WIDTH
@@ -94,14 +92,11 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         shapes.end()
 
         batch.begin()
-        font.data.setScale(1.3f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.md.draw(batch, "= PANIC_SYSTEM_V1.0", 12f, H - 14f)
 
-        // Credits badge
-        font.data.setScale(1.0f)
         val badgeTxt = "CREDITS  99"
-        layout.setText(font, badgeTxt)
+        layout.setText(Fonts.sm, badgeTxt)
         val badgeX = W - layout.width - 32f
         batch.end()
 
@@ -115,9 +110,8 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         shapes.end()
 
         batch.begin()
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        font.draw(batch, badgeTxt, badgeX, H - 18f)
-        font.data.setScale(1f)
+        Fonts.sm.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.sm.draw(batch, badgeTxt, badgeX, H - 18f)
         batch.end()
     }
 
@@ -126,21 +120,18 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
 
         batch.begin()
         // Shadow
-        font.data.setScale(3.6f)
-        font.color = Color(0.28f, 0.28f, 0f, 1f)
-        layout.setText(font, "GIRLS AI PANIC")
+        Fonts.xl.color = Color(0.28f, 0.28f, 0f, 1f)
+        layout.setText(Fonts.xl, "GIRLS AI PANIC")
         val tx = (W - layout.width) / 2f
-        font.draw(batch, "GIRLS AI PANIC", tx + 3f, 720f - 3f)
+        Fonts.xl.draw(batch, "GIRLS AI PANIC", tx + 3f, 720f - 3f)
         // Main text — electric yellow
-        font.color = Color(0.918f * glow, 0.918f * glow, 0f, 1f)
-        font.draw(batch, "GIRLS AI PANIC", tx, 720f)
+        Fonts.xl.color = Color(0.918f * glow, 0.918f * glow, 0f, 1f)
+        Fonts.xl.draw(batch, "GIRLS AI PANIC", tx, 720f)
 
         // Subtitle
-        font.data.setScale(1.3f)
-        font.color = Color(0.792f, 0.784f, 0.667f, 1f)
-        layout.setText(font, "AI-POWERED PUZZLE")
-        font.draw(batch, "AI-POWERED PUZZLE", (W - layout.width) / 2f, 648f)
-        font.data.setScale(1f)
+        Fonts.md.color = Color(0.792f, 0.784f, 0.667f, 1f)
+        layout.setText(Fonts.md, "AI-POWERED PUZZLE")
+        Fonts.md.draw(batch, "AI-POWERED PUZZLE", (W - layout.width) / 2f, 648f)
         batch.end()
 
         // 4 indicator squares below subtitle
@@ -189,29 +180,26 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
 
         batch.begin()
         // PLAY text — black on yellow
-        font.data.setScale(2.8f)
-        font.color = Color(0.196f, 0.196f, 0f, 1f)
-        layout.setText(font, "PLAY")
-        font.draw(batch, "PLAY",
+        Fonts.xl.color = Color(0.196f, 0.196f, 0f, 1f)
+        layout.setText(Fonts.xl, "PLAY")
+        Fonts.xl.draw(batch, "PLAY",
             btnPlay.x + (btnPlay.w - layout.width) / 2f,
             btnPlay.y + (btnPlay.h + layout.height) / 2f)
 
         // LEVELS text — yellow on dark
-        font.data.setScale(1.8f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
-        layout.setText(font, "LEVELS")
-        font.draw(batch, "LEVELS",
+        Fonts.md.color = Color(0.918f, 0.918f, 0f, 1f)
+        layout.setText(Fonts.md, "LEVELS")
+        Fonts.md.draw(batch, "LEVELS",
             btnLevels.x + (btnLevels.w - layout.width) / 2f,
             btnLevels.y + (btnLevels.h + layout.height) / 2f)
 
         // Settings text — muted
-        font.color = Color(0.576f, 0.573f, 0.467f, 1f)
-        layout.setText(font, "SETTINGS")
-        font.draw(batch, "SETTINGS",
+        Fonts.md.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        layout.setText(Fonts.md, "SETTINGS")
+        Fonts.md.draw(batch, "SETTINGS",
             btnSettingsArea.x + (btnSettingsArea.w - layout.width) / 2f,
             btnSettingsArea.y + (btnSettingsArea.h + layout.height) / 2f)
 
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -220,17 +208,14 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         if (hs <= 0) return
 
         batch.begin()
-        font.data.setScale(1.0f)
-        font.color = Color(0.576f, 0.573f, 0.467f, 1f)
-        layout.setText(font, "BEST SCORE")
-        font.draw(batch, "BEST SCORE", (W - layout.width) / 2f, 230f)
+        Fonts.sm.color = Color(0.576f, 0.573f, 0.467f, 1f)
+        layout.setText(Fonts.sm, "BEST SCORE")
+        Fonts.sm.draw(batch, "BEST SCORE", (W - layout.width) / 2f, 230f)
 
-        font.data.setScale(2.2f)
-        font.color = Color(0.918f, 0.918f, 0f, 1f)
+        Fonts.lg.color = Color(0.918f, 0.918f, 0f, 1f)
         val hsText = formatScore(hs)
-        layout.setText(font, hsText)
-        font.draw(batch, hsText, (W - layout.width) / 2f, 205f)
-        font.data.setScale(1f)
+        layout.setText(Fonts.lg, hsText)
+        Fonts.lg.draw(batch, hsText, (W - layout.width) / 2f, 205f)
         batch.end()
 
         // Two cyan indicator dots
@@ -266,14 +251,12 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
         val tabW = W / tabs.size
 
         batch.begin()
-        font.data.setScale(0.85f)
         for ((i, tab) in tabs.withIndex()) {
-            font.color = if (tab.second) Color(0.918f, 0.918f, 0f, 1f)
-                         else Color(0.576f, 0.573f, 0.467f, 1f)
-            layout.setText(font, tab.first)
-            font.draw(batch, tab.first, i * tabW + (tabW - layout.width) / 2f, 33f)
+            Fonts.xs.color = if (tab.second) Color(0.918f, 0.918f, 0f, 1f)
+                             else Color(0.576f, 0.573f, 0.467f, 1f)
+            layout.setText(Fonts.xs, tab.first)
+            Fonts.xs.draw(batch, tab.first, i * tabW + (tabW - layout.width) / 2f, 33f)
         }
-        font.data.setScale(1f)
         batch.end()
 
         // Active tab indicator bar (GAME tab)
@@ -301,7 +284,7 @@ class MenuScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
     }
 
     override fun resize(w: Int, h: Int) = viewport.update(w, h, true)
-    override fun dispose() { batch.dispose(); shapes.dispose(); font.dispose() }
+    override fun dispose() { batch.dispose(); shapes.dispose() }
 }
 
 data class Rect(val x: Float, val y: Float, val w: Float, val h: Float) {
