@@ -5,7 +5,6 @@ import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -24,7 +23,6 @@ class GameOverScreen(
     private val viewport = FitViewport(GameConstants.FIELD_WIDTH, GameConstants.FIELD_HEIGHT, camera)
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
-    private val font = BitmapFont()
     private val layout = GlyphLayout()
 
     private val W = GameConstants.FIELD_WIDTH
@@ -40,7 +38,7 @@ class GameOverScreen(
     private val cardPad = 16f
     private val cardW = (W - cardPad * 3) / 2f
     private val cardH = 100f
-    private val cardY = titleY - 40f - cardH
+    private val cardY = titleY - 140f - cardH
 
     private val card1X = cardPad
     private val card2X = cardPad * 2 + cardW
@@ -141,26 +139,18 @@ class GameOverScreen(
         shapes.end()
 
         batch.begin()
-        // Menu icon (three lines)
-        font.data.setScale(1.5f)
-        font.color = Color(1f, 0.9f, 0f, 1f)
-        font.draw(batch, "=", 14f, H - 15f)
+        Fonts.sm.color = Color(1f, 0.9f, 0f, 1f)
+        Fonts.sm.draw(batch, "=", 14f, H - 15f)
 
-        // Title text
-        font.data.setScale(1.2f)
-        font.color = Color(1f, 0.9f, 0f, 1f)
-        font.draw(batch, "PANIC_SYSTEM_v1.0", 42f, H - 15f)
+        Fonts.sm.color = Color(1f, 0.9f, 0f, 1f)
+        Fonts.sm.draw(batch, "PANIC_SYSTEM_v1.0", 42f, H - 15f)
 
-        // Coin counter (top right)
-        font.data.setScale(1.1f)
-        font.color = Color(1f, 0.9f, 0f, 1f)
+        Fonts.sm.color = Color(1f, 0.9f, 0f, 1f)
         val coinText = "00,450"
-        layout.setText(font, coinText)
-        font.draw(batch, coinText, W - layout.width - 16f, H - 15f)
-        font.data.setScale(1f)
+        layout.setText(Fonts.sm, coinText)
+        Fonts.sm.draw(batch, coinText, W - layout.width - 16f, H - 15f)
         batch.end()
 
-        // Coin badge border
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.setColor(0.35f, 0.35f, 0.35f, 1f)
         val coinX = W - 85f
@@ -172,45 +162,40 @@ class GameOverScreen(
         val glitchShift = if ((time * 8).toInt() % 10 < 2) 3f else 0f
         val pulse = 0.85f + 0.15f * sin(time * 4.0).toFloat()
 
-        // Red underline bar below title — #ca002d
         val barY = titleY - 80f
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.setColor(0.792f, 0f, 0.176f, 0.9f)
         shapes.rect(0f, barY, W, 4f)
-        // Glow on bar
         shapes.setColor(0.792f, 0f, 0.176f, 0.3f * pulse)
         shapes.rect(0f, barY - 4f, W, 12f)
         shapes.end()
 
         batch.begin()
-        // Shadow layer 1 (dark red offset)
-        font.data.setScale(5f)
-        font.color = Color(0.25f, 0f, 0f, 1f)
-        layout.setText(font, "GAME")
+        // Shadow
+        Fonts.xxl.color = Color(0.25f, 0f, 0f, 1f)
+        layout.setText(Fonts.xxl, "GAME")
         val gameX = (W - layout.width) / 2f
-        font.draw(batch, "GAME", gameX + 4f, titleY - 4f)
+        Fonts.xxl.draw(batch, "GAME", gameX + 4f, titleY - 4f)
 
-        font.color = Color(0.25f, 0f, 0f, 1f)
-        layout.setText(font, "OVER")
+        layout.setText(Fonts.xxl, "OVER")
         val overX = (W - layout.width) / 2f
-        font.draw(batch, "OVER", overX + 4f, titleY - 55f)
+        Fonts.xxl.draw(batch, "OVER", overX + 4f, titleY - 85f)
 
-        // Cyan glitch layer
-        font.color = Color(0f, 1f, 1f, 0.35f)
-        font.draw(batch, "GAME", gameX - glitchShift, titleY)
-        font.draw(batch, "OVER", overX - glitchShift, titleY - 55f)
+        // Cyan glitch
+        Fonts.xxl.color = Color(0f, 1f, 1f, 0.35f)
+        Fonts.xxl.draw(batch, "GAME", gameX - glitchShift, titleY)
+        Fonts.xxl.draw(batch, "OVER", overX - glitchShift, titleY - 85f)
 
-        // Red glitch layer
-        font.color = Color(1f, 0f, 0f, 0.4f)
-        font.draw(batch, "GAME", gameX + glitchShift, titleY)
-        font.draw(batch, "OVER", overX + glitchShift, titleY - 55f)
+        // Red glitch
+        Fonts.xxl.color = Color(1f, 0f, 0f, 0.4f)
+        Fonts.xxl.draw(batch, "GAME", gameX + glitchShift, titleY)
+        Fonts.xxl.draw(batch, "OVER", overX + glitchShift, titleY - 85f)
 
-        // Main red text — #ca002d hazard red
-        font.color = Color(0.792f, 0f, 0.176f, 1f)
-        font.draw(batch, "GAME", gameX, titleY)
-        font.draw(batch, "OVER", overX, titleY - 55f)
+        // Main
+        Fonts.xxl.color = Color(0.792f, 0f, 0.176f, 1f)
+        Fonts.xxl.draw(batch, "GAME", gameX, titleY)
+        Fonts.xxl.draw(batch, "OVER", overX, titleY - 85f)
 
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -234,24 +219,18 @@ class GameOverScreen(
         drawCard(card2X, cardY, cardW, cardH)
 
         batch.begin()
-
         // Card 1 — Final Score
-        font.data.setScale(1.0f)
-        font.color = Color(0.55f, 0.55f, 0.55f, 1f)
-        layout.setText(font, "FINAL SCORE")
-        font.draw(batch, "FINAL SCORE",
+        Fonts.sm.color = Color(0.55f, 0.55f, 0.55f, 1f)
+        layout.setText(Fonts.sm, "FINAL SCORE")
+        Fonts.sm.draw(batch, "FINAL SCORE",
             card1X + (cardW - layout.width) / 2f,
             cardY + cardH - 14f)
 
-        font.data.setScale(2.2f)
-        font.color = Color(1f, 0.9f, 0f, 1f)
-        layout.setText(font, scoreText)
-        font.draw(batch, scoreText,
+        Fonts.lg.color = Color(1f, 0.9f, 0f, 1f)
+        layout.setText(Fonts.lg, scoreText)
+        Fonts.lg.draw(batch, scoreText,
             card1X + (cardW - layout.width) / 2f,
             cardY + cardH - 36f)
-
-        // 2 yellow dots indicator
-        font.data.setScale(1f)
         batch.end()
 
         // Yellow indicator dots card 1
@@ -267,21 +246,17 @@ class GameOverScreen(
 
         batch.begin()
         // Card 2 — Level Reached
-        font.data.setScale(1.0f)
-        font.color = Color(0.55f, 0.55f, 0.55f, 1f)
-        layout.setText(font, "LEVEL REACHED")
-        font.draw(batch, "LEVEL REACHED",
+        Fonts.sm.color = Color(0.55f, 0.55f, 0.55f, 1f)
+        layout.setText(Fonts.sm, "LEVEL REACHED")
+        Fonts.sm.draw(batch, "LEVEL REACHED",
             card2X + (cardW - layout.width) / 2f,
             cardY + cardH - 14f)
 
-        font.data.setScale(2.2f)
-        font.color = Color(0f, 0.86f, 0.91f, 1f)
-        layout.setText(font, stageText)
-        font.draw(batch, stageText,
+        Fonts.lg.color = Color(0f, 0.86f, 0.91f, 1f)
+        layout.setText(Fonts.lg, stageText)
+        Fonts.lg.draw(batch, stageText,
             card2X + (cardW - layout.width) / 2f,
             cardY + cardH - 36f)
-
-        font.data.setScale(1f)
         batch.end()
 
         // Cyan indicator dots card 2
@@ -323,22 +298,17 @@ class GameOverScreen(
         shapes.end()
 
         batch.begin()
-        // RETRY text (black on yellow)
-        font.data.setScale(2.4f)
-        font.color = Color(0.1f, 0.1f, 0.1f, 1f)
-        layout.setText(font, "RETRY")
-        font.draw(batch, "RETRY",
+        Fonts.xl.color = Color(0.1f, 0.1f, 0.1f, 1f)
+        layout.setText(Fonts.xl, "RETRY")
+        Fonts.xl.draw(batch, "RETRY",
             btnRetry.x + (btnRetry.w - layout.width) / 2f,
             btnRetry.y + (btnRetry.h + layout.height) / 2f)
 
-        // EXIT TO MENU text (white on dark)
-        font.color = Color(0.88f, 0.88f, 0.88f, 1f)
-        layout.setText(font, "EXIT TO MENU")
-        font.draw(batch, "EXIT TO MENU",
+        Fonts.lg.color = Color(0.88f, 0.88f, 0.88f, 1f)
+        layout.setText(Fonts.lg, "EXIT TO MENU")
+        Fonts.lg.draw(batch, "EXIT TO MENU",
             btnMenu.x + (btnMenu.w - layout.width) / 2f,
             btnMenu.y + (btnMenu.h + layout.height) / 2f)
-
-        font.data.setScale(1f)
         batch.end()
     }
 
@@ -362,14 +332,12 @@ class GameOverScreen(
         }
         shapes.end()
 
-        // Footer label
+        // footer label
         batch.begin()
-        font.data.setScale(0.85f)
-        font.color = Color(0.35f, 0.35f, 0.35f, 1f)
+        Fonts.xs.color = Color(0.35f, 0.35f, 0.35f, 1f)
         val footerText = "SYSTEM.CRITICAL.PROCESS.TERMINATED"
-        layout.setText(font, footerText)
-        font.draw(batch, footerText, (W - layout.width) / 2f, segY - 8f)
-        font.data.setScale(1f)
+        layout.setText(Fonts.xs, footerText)
+        Fonts.xs.draw(batch, footerText, (W - layout.width) / 2f, segY - 8f)
         batch.end()
 
         // Bottom-left hardware info box
@@ -384,11 +352,9 @@ class GameOverScreen(
         shapes.end()
 
         batch.begin()
-        font.data.setScale(0.75f)
-        font.color = Color(0.3f, 0.3f, 0.3f, 1f)
-        font.draw(batch, "HARDWARE: CABIN_UNIT_04", 6f, 38f)
-        font.draw(batch, "LOCATION: DISTRICT_9_ARCADE", 6f, 22f)
-        font.data.setScale(1f)
+        Fonts.xs.color = Color(0.3f, 0.3f, 0.3f, 1f)
+        Fonts.xs.draw(batch, "HARDWARE: CABIN_UNIT_04", 6f, 38f)
+        Fonts.xs.draw(batch, "LOCATION: DISTRICT_9_ARCADE", 6f, 22f)
         batch.end()
 
         // Bottom-right status LEDs
@@ -414,5 +380,5 @@ class GameOverScreen(
     }
 
     override fun resize(w: Int, h: Int) = viewport.update(w, h, true)
-    override fun dispose() { batch.dispose(); shapes.dispose(); font.dispose() }
+    override fun dispose() { batch.dispose(); shapes.dispose() }
 }
