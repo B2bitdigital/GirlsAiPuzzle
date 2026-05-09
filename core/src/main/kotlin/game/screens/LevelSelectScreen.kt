@@ -243,17 +243,38 @@ class LevelSelectScreen(private val game: GirlsPanicGame) : ScreenAdapter() {
                     r.y + 14f)
             }
 
-            // Stars (completed only)
-            if (stars > 0) {
-                Fonts.xs.color = Color(0.918f, 0.918f, 0f, 1f)
-                val starStr = "★".repeat(stars)
-                layout.setText(Fonts.xs, starStr)
-                Fonts.xs.draw(batch, starStr,
-                    r.x + (r.w - layout.width) / 2f,
-                    r.y + 14f)
-            }
         }
         batch.end()
+
+        // Pass 6: star shapes for completed levels (★ glyph missing in Orbitron)
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.setColor(0.918f, 0.918f, 0f, 1f)
+        for (i in 1..50) {
+            val r = cellRect(i)
+            val unlocked = game.prefs.isLevelUnlocked(i)
+            val nStars = if (unlocked) game.prefs.getStars(i) else 0
+            if (nStars <= 0) continue
+            val outerR = 5f; val innerR = 2f; val gap = 3f
+            val totalW = nStars * outerR * 2f + (nStars - 1) * gap
+            val startCX = r.x + (r.w - totalW) / 2f + outerR
+            for (s in 0 until nStars) {
+                drawStar(startCX + s * (outerR * 2f + gap), r.y + 10f, outerR, innerR)
+            }
+        }
+        shapes.end()
+    }
+
+    private fun drawStar(cx: Float, cy: Float, outerR: Float, innerR: Float) {
+        for (i in 0 until 5) {
+            val a0 = Math.PI * 2 * i / 5 - Math.PI / 2
+            val a1 = a0 + Math.PI / 5
+            val a2 = a0 + Math.PI * 2 / 5
+            val ox0 = cx + (outerR * Math.cos(a0)).toFloat(); val oy0 = cy + (outerR * Math.sin(a0)).toFloat()
+            val ix  = cx + (innerR * Math.cos(a1)).toFloat(); val iy  = cy + (innerR * Math.sin(a1)).toFloat()
+            val ox2 = cx + (outerR * Math.cos(a2)).toFloat(); val oy2 = cy + (outerR * Math.sin(a2)).toFloat()
+            shapes.triangle(cx, cy, ox0, oy0, ix, iy)
+            shapes.triangle(cx, cy, ix, iy, ox2, oy2)
+        }
     }
 
     private fun drawButtons() {

@@ -174,24 +174,29 @@ class LevelCompleteScreen(
         for ((i, sx) in starPositions.withIndex()) {
             val earned = i < stars
             if (earned) {
-                // Glow halo
                 shapes.setColor(0.918f, 0.918f, 0f, 0.12f * pulse)
                 shapes.circle(sx, starY, 44f, 24)
                 shapes.setColor(0.918f, 0.918f, 0f, 0.22f * pulse)
                 shapes.circle(sx, starY, 28f, 20)
             }
+            if (earned) shapes.setColor(0.918f, 0.85f + pulse * 0.05f, 0f, 1f)
+            else shapes.setColor(0.208f, 0.208f, 0.208f, 1f)
+            drawStar(sx, starY, 20f, 8f)
         }
         shapes.end()
+    }
 
-        batch.begin()
-        for ((i, sx) in starPositions.withIndex()) {
-            val earned = i < stars
-            Fonts.xl.color = if (earned) Color(0.918f, 0.85f + pulse * 0.05f, 0f, 1f)
-                         else Color(0.208f, 0.208f, 0.208f, 1f)
-            layout.setText(Fonts.xl, "★")
-            Fonts.xl.draw(batch, "★", sx - layout.width / 2f, starY + layout.height / 2f)
+    private fun drawStar(cx: Float, cy: Float, outerR: Float, innerR: Float) {
+        for (i in 0 until 5) {
+            val a0 = Math.PI * 2 * i / 5 - Math.PI / 2
+            val a1 = a0 + Math.PI / 5
+            val a2 = a0 + Math.PI * 2 / 5
+            val ox0 = cx + (outerR * Math.cos(a0)).toFloat(); val oy0 = cy + (outerR * Math.sin(a0)).toFloat()
+            val ix  = cx + (innerR * Math.cos(a1)).toFloat(); val iy  = cy + (innerR * Math.sin(a1)).toFloat()
+            val ox2 = cx + (outerR * Math.cos(a2)).toFloat(); val oy2 = cy + (outerR * Math.sin(a2)).toFloat()
+            shapes.triangle(cx, cy, ox0, oy0, ix, iy)
+            shapes.triangle(cx, cy, ix, iy, ox2, oy2)
         }
-        batch.end()
     }
 
     private fun drawScoreCard() {
