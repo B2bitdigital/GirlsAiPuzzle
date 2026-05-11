@@ -568,12 +568,12 @@ class GameScreen(
             val sx = W / 2f + (i - 2) * 60f
             if (i <= overlayStars) {
                 shapes.setColor(1f, 0.9f, 0f, 0.18f)
-                shapes.circle(sx, starCY, 26f, 20)
+                shapes.circle(sx, starCY, 32f, 22)
                 shapes.setColor(1f, 0.9f, 0f, 1f)
             } else {
                 shapes.setColor(0.3f, 0.3f, 0.3f, 1f)
             }
-            drawStar(sx, starCY, 16f, 6.5f)
+            drawStar(sx, starCY, 22f, 8.5f)
         }
         shapes.end()
 
